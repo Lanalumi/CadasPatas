@@ -1,0 +1,41 @@
+{
+  "name": "cadaspatas",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "next": "^16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwind": "^4.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@tailwindcss/cli": "^4.3.0",
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.6",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
+  },
+  "description": "O projeto consiste no desenvolvimento de uma aplicação voltada para ONGs de resgate de animais, com o objetivo de facilitar a gestão e a divulgação de pets disponíveis para adoção. A plataforma permitirá que as organizações registrem animais resgatados, incluindo informações como nome, idade, pelagem, estado de saúde e histórico. Além disso, a aplicação possibilitará disponibilizar esses animais para adoção, tornando os dados acessíveis para integração com sites, aplicativos ou sistemas parceiros. A solução busca organizar as informações, otimizar processos internos das organizações e ampliar a visibilidade dos animais, aumentando as chances de adoção responsável.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lanalumi/CadasPatas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Lanalumi/CadasPatas/issues"
+  },
+  "homepage": "https://github.com/Lanalumi/CadasPatas#readme"
+}
