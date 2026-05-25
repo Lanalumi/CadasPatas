@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: projectRoot,
   },
+  images: {
+    dangerouslyAllowSVG: true,
+  },
 };
 
 export default nextConfig;
