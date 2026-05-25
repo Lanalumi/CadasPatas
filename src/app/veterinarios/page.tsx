@@ -1,3 +1,3 @@
 export default function VeterinariosPage() {
-  return <div>Veterinários</div>;
+  return <div>Veterinários</div>
 }

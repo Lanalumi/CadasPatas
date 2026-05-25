@@ -1,15 +1,10 @@
-import Image from "next/image";
+import Image from 'next/image'
 
 export default function Login() {
   return (
     <div className="relative min-h-screen w-full max-w-none bg-[#FFF9F7]">
       <div aria-label="icone">
-        <Image
-          width={100}
-          height={100}
-          src="/images/icone.svg"
-          alt="Ícone CadasPatas"
-        />
+        <Image width={100} height={100} src="/images/icone.svg" alt="Ícone CadasPatas" />
         <h1>CadasPatas</h1>
       </div>
       <div className="border-2 border-[#3A250B]/[30%] rounded">
@@ -32,5 +27,5 @@ export default function Login() {
         aria-hidden
       />
     </div>
-  );
+  )
 }

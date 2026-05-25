@@ -1,3 +1,3 @@
 export default function NewVeterinarioPage() {
-  return <div>Novo veterinário</div>;
+  return <div>Novo veterinário</div>
 }

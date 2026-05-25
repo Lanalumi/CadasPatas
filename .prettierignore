@@ -1,8 +1,9 @@
 node_modules
 .next
-.github
 out
 build
 coverage
 package-lock.json
 public
+src/generated
+prisma/migrations

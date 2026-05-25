@@ -3,5 +3,5 @@ export default function Animais() {
     <>
       <div className="">Ola</div>
     </>
-  );
+  )
 }
