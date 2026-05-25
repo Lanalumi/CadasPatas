@@ -12,10 +12,106 @@ datasource db {
   provider = "postgresql"
 }
 
-model Animal {
-  id        String @id @default(uuid())
-  nome      String
-  especie   String
+model Adotante{
+  id                String @id @default(uuid())
+  nome              String
+  cpf               String
+  email             String
+  dataNascimento    DateTime
+  telefone          String
+  rua               String
+  cidade            String
+  numero            Int
+  bairro            String
+  aptoDoacao        Boolean
 
   criadoEm  DateTime @default(now())
+
+  adocao  Adocao[]
+}
+
+model Vet{
+  id                String @id @default(uuid())
+  nome              String
+  cpf               String
+  email             String
+  dataNascimento    DateTime
+  telefone          String
+  rua               String
+  cidade            String
+  numero            Int
+  bairro            String
+  especializacao    String
+  crmvNum           String
+  crmvUf            String
+
+  criadoEm  DateTime @default(now())
+  consultas Consulta[]
+}
+
+model Voluntario {
+  id                String @id @default(uuid())
+  nome              String
+  cpf               String
+  email             String
+  dataNascimento    DateTime
+  telefone          String
+  rua               String
+  cidade            String
+  numero            Int
+  bairro            String
+  dataInscricao     DateTime
+  dataSaida         DateTime?
+  senha             String
+  
+  criadoEm  DateTime @default(now())
+}
+
+model Animal {
+  id                String @id @default(uuid())
+  nome              String
+  peso              Decimal @db.Decimal(3,2)
+  sexo              String
+  cor               String
+  raca              String
+  pelagem           String
+  dataNascimento    DateTime
+  chip              Boolean
+  foto              String
+  especie           String
+
+  criadoEm  DateTime @default(now())
+  consultas Consulta[]
+  adocao    Adocao[]
+}
+
+model Adocao {
+  id                String @id @default(uuid())
+  adotanteId        String
+  animalId          String
+  dataAdocao        DateTime
+
+  adotante    Adotante  @relation(fields:[adotanteId], references: [id])
+  animal      Animal @relation(fields: [animalId], references: [id]) 
+}
+
+model Consulta {
+  id              String   @id @default(uuid())
+  vetId           String   @map("ID_Veterinario")
+  animalId        String   @map("ID_Animal")
+  motivo          String   @db.VarChar(20)
+  observacao      String   @db.VarChar(100)
+  prescricao      String   @db.VarChar(100)
+  dataAtendimento DateTime @db.Date @map("data_atendimento")
+
+  veterinario Vet    @relation(fields: [vetId], references: [id])
+  animal      Animal @relation(fields: [animalId], references: [id])
+}
+
+model FichaMedica {
+  id            String  @id @default(uuid())
+  consultaId    String
+  castracao     Boolean
+  vermifucacao  Boolean
+  vacina        Boolean
 }
