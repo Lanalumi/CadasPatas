@@ -2,8 +2,8 @@ import { FormNewAnimal } from '@/modules/animais/componentes/FormNewAnimal/FormN
 
 export default function NewAnimalPage() {
   return (
-    <div className="flex w-full min-w-0 max-w-full flex-col">
-      <header className="flex w-full max-w-full flex-col bg-[#FFF9F7]">
+    <div className="flex flex-col border border-orange-500 max-w-[calc(100%-6%)] p-4">
+      <header className="flex w-full max-w-full flex-col bg-[#FFF9F7] border border-blue-400">
         <h1 className="text-center font-poppins text-[#755835] font-semibold">Cadastro de Animal</h1>
         <div className="flex w-full max-w-full flex-row items-center justify-center gap-2 text-center">
           <img src="/images/icons/paw.svg" alt="animal" width={24} height={24} />

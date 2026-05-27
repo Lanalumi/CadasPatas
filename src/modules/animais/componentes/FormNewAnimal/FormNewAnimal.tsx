@@ -66,15 +66,15 @@ export const FormNewAnimal = () => {
     },
   ]
   return (
-    <div className="flex w-full max-w-full flex-col items-center justify-center gap-4 rounded-xl border border-[#3A250B]/30 bg-white p-6 shadow-[2px_4px_14px_rgba(58,37,11,0.1)]">
-      <header className="flex flex-row items-center justify-center text-center gap-2 w-full max-w-full ">
+    <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4">
+      <header className="flex flex-row items-center justify-center gap-2 w-full max-w-full p-4">
         <img src="/images/icons/paw2.svg" alt="paw" width={24} height={24} />
         <div className="flex items-center justify-center text-center ">
           <span className="text-[#755835] font-poppins font-semibold ">Dados do animal</span>
         </div>
       </header>
       <form className="flex flex-col w-full max-w-full gap-4">
-        <div className="flex md:flex-row flex-col gap-4 w-full max-w-full justify-center items-center">
+        <div className="flex md:flex-row flex-col gap-4 max-w-full md:justify-center md:items-center lg:justify-start border border-red-400">
           <div className="flex flex-row gap-4 ">
             <div className="flex flex-wrap flex-col gap-4">
               <Field label="Código de Identificação" id="codigoIdentificacao" type="text" />
@@ -112,7 +112,7 @@ export const FormNewAnimal = () => {
         <div className="flex w-full justify-center">
           <TextArea label="Observações" id="observacoes" placeholder="Fale um pouco sobre o animal..." />
         </div>
-        <div className="flex flex-wrap md:flex-row gap-4 items-center justify-center max-w-full">
+        <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
           <Button green>Salvar</Button>
           <Button yellow>Atualizar</Button>
           <Button green>Limpar</Button>
