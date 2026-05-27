@@ -1,38 +1,40 @@
-"use client";
+'use client'
 
-import { setMockSession } from "@/lib/mock-auth";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { setMockSession } from '@/lib/mock-auth'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { FormEvent, useState } from 'react'
 
-const MOCK_EMAIL = "admin@cadaspatas.com";
-const MOCK_PASSWORD = "123456";
+const MOCK_EMAIL = 'admin@cadaspatas.com'
+const MOCK_PASSWORD = '123456'
 
 export default function Login() {
-  const router = useRouter();
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const router = useRouter()
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-    setLoading(true);
+    event.preventDefault()
+    setError('')
+    setLoading(true)
 
-    const form = new FormData(event.currentTarget);
-    const email = String(form.get("email") ?? "").trim().toLowerCase();
-    const password = String(form.get("password") ?? "");
+    const form = new FormData(event.currentTarget)
+    const email = String(form.get('email') ?? '')
+      .trim()
+      .toLowerCase()
+    const password = String(form.get('password') ?? '')
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300))
 
     if (email === MOCK_EMAIL && password === MOCK_PASSWORD) {
-      setMockSession({ email, name: "Admin" });
-      router.push("/home");
-      router.refresh();
-      return;
+      setMockSession({ email, name: 'Admin' })
+      router.push('/home')
+      router.refresh()
+      return
     }
 
-    setError("Email ou senha invalidos.");
-    setLoading(false);
+    setError('Email ou senha invalidos.')
+    setLoading(false)
   }
 
   return (
@@ -77,13 +79,11 @@ export default function Login() {
             className="w-full rounded bg-[#3A250B] p-2 text-white transition hover:opacity-90 disabled:opacity-60"
             disabled={loading}
           >
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-xs text-[#3A250B]/70">
-          Mock login: admin@cadaspatas.com / 123456
-        </p>
+        <p className="mt-4 text-center text-xs text-[#3A250B]/70">Mock login: admin@cadaspatas.com / 123456</p>
       </div>
 
       <div
@@ -91,5 +91,5 @@ export default function Login() {
         aria-hidden
       />
     </div>
-  );
+  )
 }

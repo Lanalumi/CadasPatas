@@ -3,5 +3,5 @@ export function Login() {
     <>
       <div className="bg-[#FFF9F7]"></div>
     </>
-  );
+  )
 }
