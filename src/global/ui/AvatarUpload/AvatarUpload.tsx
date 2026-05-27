@@ -1,0 +1,73 @@
+'use client'
+
+import { useEffect, useId, useRef, useState } from 'react'
+
+type AvatarUploadProps = {
+  label?: string
+  id?: string
+}
+
+export const AvatarUpload = ({ label = 'Foto', id }: AvatarUploadProps) => {
+  const generatedId = useId()
+  const inputId = id ?? `avatar-${generatedId}`
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [preview, setPreview] = useState<string | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setPreview((current) => {
+      if (current) URL.revokeObjectURL(current)
+      return URL.createObjectURL(file)
+    })
+  }
+
+  const handleRemove = () => {
+    setPreview((current) => {
+      if (current) URL.revokeObjectURL(current)
+      return null
+    })
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  return (
+    <div className="flex max-w-60 flex-col items-center gap-2">
+      {label && <span className="font-poppins font-semibold text-base text-[#755835]">{label}</span>}
+
+      <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-md border border-dashed border-[#3A250B]/30 bg-[#FFF9F7]">
+        {preview ? (
+          <img src={preview} alt="Pré-visualização da foto do animal" className="h-full w-full object-cover" />
+        ) : (
+          <img src="/images/icons/paw.svg" alt="" className="h-8 w-8 opacity-50" aria-hidden />
+        )}
+      </div>
+
+      <input ref={inputRef} id={inputId} type="file" accept="image/*" className="sr-only" onChange={handleFileChange} />
+
+      <div className="flex flex-wrap justify-center gap-2">
+        <label
+          htmlFor={inputId}
+          className="cursor-pointer font-poppins text-sm font-semibold text-[#755835] underline-offset-2 hover:underline"
+        >
+          {preview ? 'Trocar foto' : 'Adicionar foto'}
+        </label>
+        {preview && (
+          <button
+            type="button"
+            onClick={handleRemove}
+            className="cursor-pointer font-poppins text-sm font-semibold text-[#B85454] underline-offset-2 hover:underline"
+          >
+            Remover
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
