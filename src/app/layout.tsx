@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={poppins.variable}>
       <body className={poppins.className}>
         <MenuNav />
         <main className="min-w-0 overflow-x-hidden px-6 py-4">{children}</main>
