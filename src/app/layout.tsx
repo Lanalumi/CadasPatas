@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Poppins } from 'next/font/google'
 import './globals.css'
+import { QueryProvider } from '@/global/providers/QueryProvider'
 import { MenuNav } from '@/global/ui/MenuNav/MenuNav'
 
 const poppins = Poppins({
@@ -23,10 +24,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={poppins.variable}>
       <body>
-        <header className="flex w-[20%] border border-green-400">
-          <MenuNav />
-        </header>
-        <main>{children}</main>
+        <QueryProvider>
+          <header className="flex w-[20%] border border-green-400">
+            <MenuNav />
+          </header>
+          <main>{children}</main>
+        </QueryProvider>
       </body>
     </html>
   )

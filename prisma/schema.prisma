@@ -88,6 +88,8 @@ model Animal {
   chip              Boolean
   foto              String
   especie           String
+  dataChegada    DateTime   @default(now()) @map("DataChegada")
+
 
   criadoEm  DateTime @default(now())
   consultas Consulta[]
