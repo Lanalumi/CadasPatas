@@ -1,7 +1,6 @@
 'use client'
 
 import { Controller, useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from '@/global/ui/Button/Button'
@@ -16,6 +15,50 @@ import { DropDown } from '@/global/ui/DropDown/DropDown'
 import { Especies } from '../FormNewAnimal/components/especies'
 import { AvatarUpload } from '@/global/ui/AvatarUpload/AvatarUpload'
 import { CheckBox } from '@/global/ui/CheckBox/CheckBox'
+
+type AnimalEditFormInput = Omit<UpdateAnimal, 'dataNascimento' | 'dataChegada'> & {
+  dataNascimento: string
+  dataChegada: string
+}
+
+function parseBrDate(value: unknown): Date | null {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value
+  }
+
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value.trim())
+  if (!match) return null
+
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  const date = new Date(year, month - 1, day)
+
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null
+  }
+
+  return date
+}
+
+function formatBrDate(value: Date | string): string {
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+
+  return `${day}/${month}/${year}`
+}
+
+function sameDate(a: Date, b: Date | string): boolean {
+  return a.getTime() === new Date(b).getTime()
+}
 
 export default function FormEditAnimal({
   initialState,
@@ -34,17 +77,17 @@ export default function FormEditAnimal({
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting },
-  } = useForm<UpdateAnimal>({
-    resolver: zodResolver(updateAnimalSchema),
+    setError,
+    formState: { isSubmitting },
+  } = useForm<AnimalEditFormInput>({
     defaultValues: {
       nome: initialState.nome,
       sexo: initialState.sexo,
       cor: initialState.cor,
       raca: initialState.raca,
       pelagem: initialState.pelagem,
-      dataNascimento: initialState.dataNascimento,
-      dataChegada: initialState.dataChegada,
+      dataNascimento: formatBrDate(initialState.dataNascimento),
+      dataChegada: formatBrDate(initialState.dataChegada),
       chip: initialState.chip,
       especie: initialState.especie,
       foto: initialState.foto,
@@ -52,10 +95,43 @@ export default function FormEditAnimal({
     },
   })
 
-  const onSubmit = (data: UpdateAnimal) => {
+  const onSubmit = (values: AnimalEditFormInput) => {
     setNoChangesMessage(null)
 
-    const updates: Record<string, unknown> = {}
+    const dataNascimento = parseBrDate(values.dataNascimento)
+    if (!dataNascimento) {
+      setError('dataNascimento', { message: 'Data inválida. Use dd/mm/aaaa' })
+      toast.error('Data de nascimento inválida. Use dd/mm/aaaa')
+      return
+    }
+
+    const dataChegada = parseBrDate(values.dataChegada)
+    if (!dataChegada) {
+      setError('dataChegada', { message: 'Data inválida. Use dd/mm/aaaa' })
+      toast.error('Data de chegada inválida. Use dd/mm/aaaa')
+      return
+    }
+
+    const result = updateAnimalSchema.safeParse({
+      ...values,
+      dataNascimento,
+      dataChegada,
+    })
+
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const field = issue.path[0]
+        if (typeof field === 'string') {
+          setError(field as keyof AnimalEditFormInput, { message: issue.message })
+        }
+      }
+
+      toast.error(result.error.issues[0]?.message ?? 'Verifique os campos do formulário')
+      return
+    }
+
+    const data = result.data
+    const updates: Partial<UpdateAnimal> = {}
     if (data.nome !== initialState.nome) {
       updates.nome = data.nome
     }
@@ -71,10 +147,10 @@ export default function FormEditAnimal({
     if (data.pelagem !== initialState.pelagem) {
       updates.pelagem = data.pelagem
     }
-    if (data.dataNascimento !== initialState.dataNascimento) {
+    if (!sameDate(data.dataNascimento, initialState.dataNascimento)) {
       updates.dataNascimento = data.dataNascimento
     }
-    if (data.dataChegada !== initialState.dataChegada) {
+    if (!sameDate(data.dataChegada, initialState.dataChegada)) {
       updates.dataChegada = data.dataChegada
     }
     if (data.chip !== initialState.chip) {
@@ -194,7 +270,7 @@ export default function FormEditAnimal({
               {...register('observacoes')}
             />
           </div>
-          <Button type="submit" disabled={isLoading}>
+          <Button green type="submit" disabled={isLoading}>
             {isLoading ? 'Salvando...' : 'Salvar alterações'}
           </Button>
         </div>
