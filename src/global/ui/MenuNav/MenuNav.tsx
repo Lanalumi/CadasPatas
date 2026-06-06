@@ -1,16 +1,21 @@
 'use client'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 export const MenuNav = () => {
+  const pathname = usePathname()
+  const isActive = (path: string) =>
+    pathname === path ? 'bg-[#FFF9F7] rounded-[4px] px-4 w-full items-center justify-center flex' : 'bg-none'
   const router = useRouter()
   return (
     <div className="fixed top-0 left-0 z-10 flex md:h-[100vh] w-[100vw] h-[10%] flex-col bg-[#D0DAC4] md:max-w-[20%] lg:max-w-[10%] md:w-[20%] lg:w-[10%] ">
       <aside className="flex md:justify-center h-full w-full md:pt-20 p-4">
         <nav className="flex flex-wrap md:flex-col flex-row items-center md:gap-4 gap-2">
           <img src="/images/logo.svg" alt="logo" width={60} height={60} />
-          <Link href="/home">Inicio</Link>
-          <div className="flex flex-row items-center gap-2">
+          <div className={isActive('/home')}>
+            <Link href="/home">Inicio</Link>
+          </div>
+          <div className={`flex flex-row items-center gap-2 ${isActive('/animais/new') || isActive('/animais')}`}>
             <Link href="/animais">Animais</Link>
             <img
               src="/images/icons/add-button.svg"
@@ -21,9 +26,15 @@ export const MenuNav = () => {
               className="cursor-pointer invert mt-1"
             />
           </div>
-          <Link href="/voluntarios">Voluntários</Link>
-          <Link href="/veterinarios">Veterinários</Link>
-          <Link href="/logout">Sair</Link>
+          <div className={isActive('/voluntarios')}>
+            <Link href="/voluntarios">Voluntários</Link>
+          </div>
+          <div className={isActive('/veterinarios')}>
+            <Link href="/veterinarios">Veterinários</Link>
+          </div>
+          <div className={isActive('/logout')}>
+            <Link href="/logout">Sair</Link>
+          </div>
         </nav>
       </aside>
       <div className="hidden md:flex mt-auto flex w-full">
