@@ -1,7 +1,8 @@
 import { CLIENT_ERROR_MESSAGES } from '../constants/errors'
 
 export interface ApiErrorResponse {
-  error: string
+  error?: string
+  message?: string
 }
 
 export class ApiError extends Error {
@@ -53,9 +54,7 @@ export async function processFetchResponse<T>(response: Response): Promise<T> {
 
     try {
       const errorData = (await response.json()) as ApiErrorResponse
-      if (errorData.error) {
-        errorMessage = errorData.error
-      }
+      errorMessage = errorData.message ?? errorData.error ?? errorMessage
     } catch {
       // If response is not JSON, use default message
       errorMessage = response.statusText || errorMessage

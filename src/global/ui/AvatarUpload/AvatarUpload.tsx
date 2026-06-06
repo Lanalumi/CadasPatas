@@ -1,39 +1,52 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 
 type AvatarUploadProps = {
   label?: string
   id?: string
+  value?: string
+  onChange?: (value: string) => void
+  onBlur?: () => void
 }
 
-export const AvatarUpload = ({ label = 'Foto', id }: AvatarUploadProps) => {
+const readFileAsDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+
+export const AvatarUpload = ({ label = 'Foto', id, value, onChange, onBlur }: AvatarUploadProps) => {
   const generatedId = useId()
   const inputId = id ?? `avatar-${generatedId}`
   const inputRef = useRef<HTMLInputElement>(null)
-  const [preview, setPreview] = useState<string | null>(null)
+  const [internalValue, setInternalValue] = useState('')
 
-  useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview)
+  const isControlled = value !== undefined
+  const foto = isControlled ? value : internalValue
+  const preview = foto || null
+
+  const updateValue = (nextValue: string) => {
+    if (!isControlled) {
+      setInternalValue(nextValue)
     }
-  }, [preview])
+    onChange?.(nextValue)
+  }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    setPreview((current) => {
-      if (current) URL.revokeObjectURL(current)
-      return URL.createObjectURL(file)
-    })
+    const dataUrl = await readFileAsDataUrl(file)
+    updateValue(dataUrl)
+    onBlur?.()
   }
 
   const handleRemove = () => {
-    setPreview((current) => {
-      if (current) URL.revokeObjectURL(current)
-      return null
-    })
+    updateValue('')
+    onBlur?.()
     if (inputRef.current) inputRef.current.value = ''
   }
 
@@ -49,7 +62,14 @@ export const AvatarUpload = ({ label = 'Foto', id }: AvatarUploadProps) => {
         )}
       </div>
 
-      <input ref={inputRef} id={inputId} type="file" accept="image/*" className="sr-only" onChange={handleFileChange} />
+      <input
+        ref={inputRef}
+        id={inputId}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        onChange={handleFileChange}
+      />
 
       <div className="flex flex-wrap justify-center gap-2">
         <label

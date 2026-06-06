@@ -65,8 +65,8 @@ export const createAnimalSchema = z.object({
   cor: z.string().min(1, 'A cor é obrigatória'),
   raca: z.string().min(1, 'A raça é obrigatória'),
   pelagem: z.string().min(1, 'A pelagem é obrigatória'),
-  dataNascimento: z.date(),
-  dataChegada: z.date(),
+  dataNascimento: z.coerce.date(),
+  dataChegada: z.coerce.date(),
   observacoes: z.string().optional().nullable(),
   chip: z.boolean(),
   foto: z
@@ -84,8 +84,8 @@ export const animalPublicSchema = z.object({
   cor: z.string().min(1, 'A cor é obrigatória'),
   raca: z.string().min(1, 'A raça é obrigatória'),
   pelagem: z.string().min(1, 'A pelagem é obrigatória'),
-  dataNascimento: z.date(),
-  dataChegada: z.date(),
+  dataNascimento: z.coerce.date(),
+  dataChegada: z.coerce.date(),
   observacoes: z.string().optional().nullable(),
   chip: z.boolean(),
   foto: z

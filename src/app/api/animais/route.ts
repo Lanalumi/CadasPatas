@@ -19,7 +19,7 @@ export async function POST(request: Request) {
         dataNascimento: data.dataNascimento,
         dataChegada: data.dataChegada,
         chip: data.chip,
-        foto: data.foto,
+        foto: data.foto ?? '',
         especie: data.especie,
       },
     })
