@@ -232,9 +232,16 @@ export const FormNewAnimal = () => {
           />
         </div>
         <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
-          <Button type="submit" green icon="/images/icons/save-button.svg" disabled={isLoading}>
-            Salvar
-          </Button>
+          {isLoading ? (
+            <Button type="submit" disabled icon="/images/icons/save-button.svg">
+              Salvando...
+            </Button>
+          ) : (
+            <Button type="submit" green icon="/images/icons/save-button.svg">
+              Salvar
+            </Button>
+          )}
+
           {/* <Button green>Limpar</Button> */}
         </div>
       </form>
