@@ -7,14 +7,42 @@ import { DropDown } from '@/global/ui/DropDown/DropDown'
 import { Field } from '@/global/ui/Field/Field'
 import { TextArea } from '@/global/ui/TextArea/TextArea'
 import { useRouter } from 'next/navigation'
-import { Controller, FieldErrors, useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { Controller, useForm } from 'react-hook-form'
 import { CreateAnimal, CreateAnimalForm } from '../../types'
 import { toast } from 'react-toastify'
 import { Especies, Cores, Sexos, Pelagens } from './components/especies'
 import { createAnimalSchema } from '@/schemas/cadastroSchemas'
 import { useCreateAnimal } from '../../hooks/useCreateAnimal'
 import { ApiError } from '@/lib/client/errors'
+
+type AnimalFormInput = Omit<CreateAnimalForm, 'dataNascimento' | 'dataChegada'> & {
+  dataNascimento: string
+  dataChegada: string
+}
+
+function parseBrDate(value: unknown): Date | null {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value
+  }
+
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value.trim())
+  if (!match) return null
+
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  const date = new Date(year, month - 1, day)
+
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null
+  }
+
+  return date
+}
 
 export const FormNewAnimal = () => {
   const router = useRouter()
@@ -24,9 +52,9 @@ export const FormNewAnimal = () => {
     register,
     control,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
-  } = useForm<CreateAnimalForm, unknown, CreateAnimal>({
-    resolver: zodResolver(createAnimalSchema),
+  } = useForm<AnimalFormInput>({
     defaultValues: {
       dataChegada: '',
       especie: '',
@@ -42,8 +70,40 @@ export const FormNewAnimal = () => {
     },
   })
 
-  const onSubmit = (data: CreateAnimal) => {
-    createAnimalMutation.mutate(data, {
+  const onSubmit = (values: AnimalFormInput) => {
+    const dataNascimento = parseBrDate(values.dataNascimento)
+    if (!dataNascimento) {
+      setError('dataNascimento', { message: 'Data inválida. Use dd/mm/aaaa' })
+      toast.error('Data de nascimento inválida. Use dd/mm/aaaa')
+      return
+    }
+
+    const dataChegada = parseBrDate(values.dataChegada)
+    if (!dataChegada) {
+      setError('dataChegada', { message: 'Data inválida. Use dd/mm/aaaa' })
+      toast.error('Data de chegada inválida. Use dd/mm/aaaa')
+      return
+    }
+
+    const result = createAnimalSchema.safeParse({
+      ...values,
+      dataNascimento,
+      dataChegada,
+    })
+
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const field = issue.path[0]
+        if (typeof field === 'string') {
+          setError(field as keyof AnimalFormInput, { message: issue.message })
+        }
+      }
+
+      toast.error(result.error.issues[0]?.message ?? 'Verifique os campos do formulário')
+      return
+    }
+
+    createAnimalMutation.mutate(result.data as CreateAnimal, {
       onSuccess: (createdAnimal) => {
         toast.success('Animal cadastrado com sucesso')
         // Navigate immediately without clearing form state to prevent freezing
@@ -54,18 +114,6 @@ export const FormNewAnimal = () => {
         toast.error(message)
       },
     })
-  }
-
-  const onInvalid = (fieldErrors: FieldErrors<CreateAnimalForm>) => {
-    const messages = Object.values(fieldErrors)
-      .map((error) => error?.message)
-      .filter((message): message is string => Boolean(message))
-
-    toast.error(messages[0] ?? 'Verifique os campos do formulário')
-
-    if (messages.length > 1) {
-      toast.error(`Mais ${messages.length - 1} campo(s) com erro`)
-    }
   }
 
   const validationMessages = Object.values(errors)
@@ -82,7 +130,7 @@ export const FormNewAnimal = () => {
           <span className="text-[#755835] font-poppins font-semibold ">Dados do animal</span>
         </div>
       </header>
-      <form className="flex flex-col max-w-full gap-4 p-4 " onSubmit={handleSubmit(onSubmit, onInvalid)}>
+      <form className="flex flex-col max-w-full gap-4 p-4 " onSubmit={handleSubmit(onSubmit)}>
         {validationMessages.length > 0 && (
           <div
             role="alert"
@@ -184,7 +232,7 @@ export const FormNewAnimal = () => {
           />
         </div>
         <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
-          <Button type="submit" green disabled={isLoading}>
+          <Button type="submit" green icon="/images/icons/save-button.svg" disabled={isLoading}>
             Salvar
           </Button>
           {/* <Button green>Limpar</Button> */}
