@@ -89,7 +89,7 @@ model Animal {
   foto              String
   especie           String
   dataChegada       DateTime @default(now())
-
+  observacoes       String?
 
   criadoEm  DateTime @default(now())
   consultas Consulta[]
