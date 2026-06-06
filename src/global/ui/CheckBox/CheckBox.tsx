@@ -18,9 +18,7 @@ type CheckBoxProps = {
 }
 
 export const CheckBox = ({ id, title, options, value, onChange, onBlur }: CheckBoxProps) => {
-  const [internalValue, setInternalValue] = useState(
-    () => options.find((option) => option.checked)?.value ?? '',
-  )
+  const [internalValue, setInternalValue] = useState(() => options.find((option) => option.checked)?.value ?? '')
 
   const isControlled = value !== undefined
   const selected = isControlled ? value : internalValue

@@ -62,14 +62,7 @@ export const AvatarUpload = ({ label = 'Foto', id, value, onChange, onBlur }: Av
         )}
       </div>
 
-      <input
-        ref={inputRef}
-        id={inputId}
-        type="file"
-        accept="image/*"
-        className="sr-only"
-        onChange={handleFileChange}
-      />
+      <input ref={inputRef} id={inputId} type="file" accept="image/*" className="sr-only" onChange={handleFileChange} />
 
       <div className="flex flex-wrap justify-center gap-2">
         <label

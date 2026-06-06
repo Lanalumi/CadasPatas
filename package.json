@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "postinstall": "prisma generate",
     "db:init": "docker compose up -d",
     "db:migrate": "prisma migrate dev && prisma generate"
   },

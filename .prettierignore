@@ -8,3 +8,4 @@ package-lock.json
 public
 src/generated
 prisma/migrations
+tmp-tailwind-out.css
