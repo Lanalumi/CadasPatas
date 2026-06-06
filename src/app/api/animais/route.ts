@@ -21,6 +21,7 @@ export async function POST(request: Request) {
         chip: data.chip,
         foto: data.foto ?? '',
         especie: data.especie,
+        observacoes: data.observacoes?.trim() || null,
       },
     })
 
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
       pelagem: animal.pelagem,
       dataNascimento: animal.dataNascimento,
       dataChegada: animal.dataChegada,
-      observacoes: data.observacoes ?? null,
+      observacoes: animal.observacoes,
       chip: animal.chip,
       foto: animal.foto,
       especie: animal.especie,

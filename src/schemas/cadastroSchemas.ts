@@ -90,6 +90,21 @@ export const animalPublicSchema = z.object({
   chip: z.boolean(),
   foto: z.string().url('A foto deve ser uma URL válida').optional(),
   especie: z.string().min(1),
+  observacoes: z.string().optional().nullable(),
+})
+
+export const updateAnimalSchema = z.object({
+  nome: z.string().min(1, 'Nome do animal é obrigatório'),
+  sexo: z.string().min(1, 'Especifique o sexo'),
+  cor: z.string().min(1, 'A cor é obrigatória'),
+  raca: z.string().min(1, 'A raça é obrigatória'),
+  pelagem: z.string().min(1, 'A pelagem é obrigatória'),
+  dataNascimento: z.preprocess((val) => new Date(val as string), z.date()),
+  dataChegada: z.preprocess((val) => new Date(val as string), z.date()),
+  chip: z.boolean(),
+  foto: z.string().url('A foto deve ser uma URL válida').optional(),
+  especie: z.string().min(1),
+  observacoes: z.string().optional().nullable(),
 })
 
 export type CreateAdotante = z.infer<typeof createAdotanteSchema>

@@ -1,5 +1,6 @@
 import { getRequestApiUrl } from '@/global/constants/api'
 import { api } from '@/lib/http/api'
+import FormEditAnimal from '@/modules/animais/componentes/FormEditAnimal/FormEditAnimal'
 import type { Animal } from '@/modules/animais/types'
 import { notFound } from 'next/navigation'
 
@@ -29,7 +30,9 @@ export default async function AnimalPage({ params }: { params: Promise<{ idAnima
         <p>Chip: {animal.chip ? 'Sim' : 'Não'}</p>
         <p>Espécie: {animal.especie}</p>
         <p>Data de Chegada: {String(animal.dataChegada)}</p>
+        {animal.observacoes ? <p>Observações: {animal.observacoes}</p> : null}
       </div>
+      <FormEditAnimal initialState={animal} id={idAnimal} />
     </>
   )
 }
