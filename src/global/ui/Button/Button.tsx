@@ -31,10 +31,10 @@ export const Button = <T extends React.ButtonHTMLAttributes<HTMLButtonElement>>(
       )}
 
       {red && (
-        <div className="bg-[#FFA686] flex flex-row items-center justify-center gap-2 py-2 px-4 rounded-sm md:h-8 md:w-28 lg:w-40 lg:h-10 cursor-pointer">
+        <div className="bg-[#FFA686] flex flex-row items-center justify-center gap-2 py-2 px-4 rounded-[10px] md:max-w-70 md:max-h-10 cursor-pointer">
           <img src="/images/icons/delete-button.svg" alt="delete" width={24} height={24} />
           <button
-            className="flex font-poppins font-semibold py-2 px-4 text-base text-white rounded-sm focus:outline-none cursor-pointer"
+            className="flex font-poppins font-semibold py-2 px-4 text-[14px] text-white rounded-sm focus:outline-none cursor-pointer"
             {...props}
           >
             {children}

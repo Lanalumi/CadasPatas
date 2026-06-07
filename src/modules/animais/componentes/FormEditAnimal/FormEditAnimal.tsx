@@ -15,6 +15,7 @@ import { DropDown } from '@/global/ui/DropDown/DropDown'
 import { Especies } from '../FormNewAnimal/components/especies'
 import { AvatarUpload } from '@/global/ui/AvatarUpload/AvatarUpload'
 import { CheckBox } from '@/global/ui/CheckBox/CheckBox'
+import { useDeleteAnimal } from '../../hooks/useDeleteAnimal'
 
 type AnimalEditFormInput = Omit<UpdateAnimal, 'dataNascimento' | 'dataChegada'> & {
   dataNascimento: string
@@ -72,6 +73,20 @@ export default function FormEditAnimal({
   const router = useRouter()
   const updateAnimalMutation = useUpdateAnimal()
   const [noChangesMessage, setNoChangesMessage] = useState<string | null>(null)
+  const deleteAnimalMutation = useDeleteAnimal()
+  const onDelete = async (idAnimal: string) => {
+    if (!confirm('Tem certeza que deseja excluir este animal?')) return
+
+    deleteAnimalMutation.mutate(idAnimal, {
+      onSuccess: () => {
+        toast.success('Animal excluído com sucesso')
+        router.push('/animais')
+      },
+      onError: () => {
+        toast.error('Erro ao excluir animal')
+      },
+    })
+  }
 
   const {
     register,
@@ -188,90 +203,117 @@ export default function FormEditAnimal({
   const isLoading = updateAnimalMutation.isPending || isSubmitting
 
   return (
-    <div>
+    <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
+      <header className="flex flex-row items-center justify-center gap-2 w-full max-w-full">
+        <img src="/images/icons/paw2.svg" alt="paw" width={24} height={24} />
+        <div className="flex items-center justify-center text-center ">
+          <span className="text-[#755835] font-poppins font-semibold ">Dados do animal</span>
+        </div>
+      </header>
       {updateAnimalMutation.error && <div className="error">{updateAnimalMutation.error.message}</div>}
       {noChangesMessage && <div className="error">{noChangesMessage}</div>}
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex flex-row gap-4">
-          <Field label="Data de Chegada" id="dataChegada" type="text" {...register('dataChegada')} />
-          <DropDown
-            label="Espécie"
-            options={[Especies[0].label, Especies[1].label]}
-            value={[Especies[0].value, Especies[1].value]}
-            id="especie"
-            {...register('especie')}
-          />
-          <DropDown
-            label="Cor"
-            options={Cores.map((cor) => cor.label)}
-            value={Cores.map((cor) => cor.value)}
-            id="cor"
-            {...register('cor')}
-          />
-          <Field label="Raça" id="raça" type="text" {...register('raca')} />
-          <Field label="Nome" {...register('nome')} id="nome" type="text" />
-          <Field label="Data de Nascimento" id="dataNascimento" type="text" {...register('dataNascimento')} />
-          <Controller
-            name="sexo"
-            control={control}
-            render={({ field }) => (
-              <CheckBox
-                id="sexo"
-                title="Sexo"
-                options={Sexos}
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
+      <form className="flex flex-col max-w-full gap-4 p-4" onSubmit={handleSubmit(onSubmit)}>
+        <div className="flex md:flex-row flex-col gap-4 max-w-full md:justify-center md:items-center lg:justify-start">
+          <div className="flex flex-row gap-4 ">
+            <div className="flex flex-row gap-4">
+              <div className="flex flex-wrap flex-col gap-4">
+                <Field label="Data de Chegada" id="dataChegada" type="text" {...register('dataChegada')} />
+                <DropDown
+                  label="Espécie"
+                  options={[Especies[0].label, Especies[1].label]}
+                  value={[Especies[0].value, Especies[1].value]}
+                  id="especie"
+                  {...register('especie')}
+                />
+                <DropDown
+                  label="Cor"
+                  options={Cores.map((cor) => cor.label)}
+                  value={Cores.map((cor) => cor.value)}
+                  id="cor"
+                  {...register('cor')}
+                />
+                <Field label="Raça" id="raça" type="text" {...register('raca')} />
+              </div>
+              <div className="flex flex-col gap-4  ">
+                <Field label="Nome" {...register('nome')} id="nome" type="text" />
+                <Field label="Data de Nascimento" id="dataNascimento" type="text" {...register('dataNascimento')} />
+                <Controller
+                  name="sexo"
+                  control={control}
+                  render={({ field }) => (
+                    <CheckBox
+                      id="sexo"
+                      title="Sexo"
+                      options={Sexos}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                    />
+                  )}
+                />
+                <DropDown
+                  label="Pelagem"
+                  options={Pelagens.map((pelagem) => pelagem.label)}
+                  value={Pelagens.map((pelagem) => pelagem.value)}
+                  id="pelagem"
+                  {...register('pelagem')}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-4">
+              <Controller
+                name="foto"
+                control={control}
+                render={({ field }) => (
+                  <AvatarUpload
+                    id="foto"
+                    label="Foto"
+                    value={initialState.foto ?? ''}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
-            )}
-          />
-          <DropDown
-            label="Pelagem"
-            options={Pelagens.map((pelagem) => pelagem.label)}
-            value={Pelagens.map((pelagem) => pelagem.value)}
-            id="pelagem"
-            {...register('pelagem')}
-          />
-          <Controller
-            name="foto"
-            control={control}
-            render={({ field }) => (
-              <AvatarUpload
-                id="foto"
-                label="Foto"
-                value={initialState.foto ?? ''}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
+              <Controller
+                name="chip"
+                control={control}
+                render={({ field }) => (
+                  <CheckBox
+                    id="chip"
+                    title="Chip"
+                    value={field.value ? 'sim' : 'nao'}
+                    onChange={(selected) => field.onChange(selected === 'sim')}
+                    onBlur={field.onBlur}
+                    options={[
+                      { label: 'Sim', value: 'sim' },
+                      { label: 'Não', value: 'nao' },
+                    ]}
+                  />
+                )}
               />
-            )}
-          />
-          <Controller
-            name="chip"
-            control={control}
-            render={({ field }) => (
-              <CheckBox
-                id="chip"
-                title="Chip"
-                value={field.value ? 'sim' : 'nao'}
-                onChange={(selected) => field.onChange(selected === 'sim')}
-                onBlur={field.onBlur}
-                options={[
-                  { label: 'Sim', value: 'sim' },
-                  { label: 'Não', value: 'nao' },
-                ]}
-              />
-            )}
-          />
-          <div className="flex w-full justify-center">
-            <TextArea
-              label="Observações"
-              id="observacoes"
-              placeholder="Fale um pouco sobre o animal..."
-              {...register('observacoes')}
-            />
+            </div>
           </div>
-          <Button green type="submit" disabled={isLoading}>
-            {isLoading ? 'Salvando...' : 'Salvar alterações'}
+        </div>
+        <div className="flex w-full justify-center">
+          <TextArea
+            label="Observações"
+            id="observacoes"
+            placeholder="Fale um pouco sobre o animal..."
+            {...register('observacoes')}
+          />
+        </div>
+        <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
+          {isLoading ? (
+            <Button type="submit" disabled icon="/images/icons/save-button.svg">
+              Salvando...
+            </Button>
+          ) : (
+            <Button type="submit" green icon="/images/icons/save-button.svg">
+              Salvar
+            </Button>
+          )}
+          <Button id="delete-button" type="button" red onClick={() => onDelete(initialState.id)}>
+            {deleteAnimalMutation.isPending ? 'Excluindo...' : 'Excluir'}
           </Button>
         </div>
       </form>
