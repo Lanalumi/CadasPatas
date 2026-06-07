@@ -54,7 +54,7 @@ export const Button = <T extends React.ButtonHTMLAttributes<HTMLButtonElement>>(
       )}
       {!green && !yellow && !red && !disabled && (
         <button
-          className="flex font-poppins font-semibold py-2 px-4 text-base text-[#755835] bg-[#FFF9F7] border border-[#3A250B/30] rounded-sm p-2 focus:outline-none"
+          className="flex font-poppins font-semibold py-2 text-base text-[#755835] bg-transparent  focus:outline-none"
           {...props}
         >
           {children}

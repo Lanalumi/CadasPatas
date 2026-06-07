@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { listAnimals } from '@/modules/animais/server/service'
 import { animalPublicSchema, createAnimalSchema } from '@/schemas/cadastroSchemas'
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
@@ -11,7 +12,6 @@ export async function POST(request: Request) {
     const animal = await prisma.animal.create({
       data: {
         nome: data.nome,
-        peso: 0,
         sexo: data.sexo,
         cor: data.cor,
         raca: data.raca,
@@ -49,4 +49,13 @@ export async function POST(request: Request) {
     console.error('[POST /api/animais]', error)
     return NextResponse.json({ message: 'Erro ao cadastrar animal' }, { status: 500 })
   }
+}
+
+export async function GET(request: Request) {
+  const url = new URL(request.url)
+  const queryParams = Object.fromEntries(url.searchParams.entries())
+
+  const data = await listAnimals(queryParams)
+
+  return NextResponse.json(data)
 }

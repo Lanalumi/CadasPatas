@@ -1,4 +1,6 @@
-type FieldProps = {
+import { ComponentProps } from 'react'
+
+type FieldProps = ComponentProps<'input'> & {
   label?: string
   id: string
   type: string

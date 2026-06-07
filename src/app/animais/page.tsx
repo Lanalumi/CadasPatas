@@ -1,7 +1,9 @@
+import AnimalListView from '@/modules/animais/views/AnimalListView'
+
 export default function Animais() {
   return (
     <>
-      <div className="">Ola</div>
+      <AnimalListView />
     </>
   )
 }

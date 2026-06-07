@@ -7,9 +7,7 @@ export default function HomePage() {
   return (
     <>
       <header>
-        <h1 className=" font-poppins text-[#755835] font-bold text-2xl">
-          Dashboard(Obs:Professora essa não é a tela com CRUD, clicar em cadastrar animal para acessar a tela com CRUD)
-        </h1>
+        <h1 className=" font-poppins text-[#755835] font-bold text-2xl">Dashboard</h1>
       </header>
       <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
         <div className="flex flex-row gap-4">

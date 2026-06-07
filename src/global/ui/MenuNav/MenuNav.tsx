@@ -15,7 +15,9 @@ export const MenuNav = () => {
           <div className={isActive('/home')}>
             <Link href="/home">Inicio</Link>
           </div>
-          <div className={`flex flex-row items-center gap-2 ${isActive('/animais/new') || isActive('/animais')}`}>
+          <div
+            className={`flex flex-row items-center gap-2 ${isActive('/animais') || isActive('/animais/new') || isActive('/animais/id')} `}
+          >
             <Link href="/animais">Animais</Link>
             <img
               src="/images/icons/add-button.svg"

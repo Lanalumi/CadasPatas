@@ -79,14 +79,13 @@ model Voluntario {
 model Animal {
   id                String @id @default(uuid())
   nome              String
-  peso              Decimal @db.Decimal(3,2)
   sexo              String
   cor               String
   raca              String
   pelagem           String
   dataNascimento    DateTime
   chip              Boolean
-  foto              String
+  foto              String?
   especie           String
   dataChegada       DateTime @default(now())
   observacoes       String?
