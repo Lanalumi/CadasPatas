@@ -1,4 +1,4 @@
-import { ComponentProps, ReactNode, JSX } from 'react'
+import { ComponentProps, Fragment, ReactNode, JSX } from 'react'
 import clsx from 'clsx'
 import './Table.style.css'
 
@@ -21,6 +21,78 @@ export interface TableProps<T> extends ComponentProps<'div'> {
   getRowKey: (item: T) => string
 }
 
+function renderPaginationControls(totalPages: number, currentPage: number, onPageChange?: (page: number) => void) {
+  if (totalPages <= 1) return null
+
+  const pages: JSX.Element[] = []
+  const maxVisiblePages = 5
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+  const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+  if (endPage - startPage + 1 < maxVisiblePages) {
+    startPage = Math.max(1, endPage - maxVisiblePages + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(
+      <button
+        key={i}
+        onClick={() => onPageChange?.(i)}
+        disabled={i === currentPage}
+        className={clsx('table-pagination-button', {
+          'table-pagination-button--active': i === currentPage,
+        })}
+      >
+        {i}
+      </button>,
+    )
+  }
+
+  return (
+    <div className="table-pagination">
+      <button
+        onClick={() => onPageChange?.(currentPage - 1)}
+        disabled={currentPage <= 1}
+        className="table-pagination-button cursor-pointer"
+      >
+        Previous
+      </button>
+      {pages}
+      <button
+        onClick={() => onPageChange?.(currentPage + 1)}
+        disabled={currentPage >= totalPages}
+        className="table-pagination-button"
+      >
+        Next
+      </button>
+    </div>
+  )
+}
+
+function renderSortableHeader<T>(
+  column: TableColumn<T>,
+  onSortChange: TableProps<T>['onSortChange'],
+  currentSort: TableProps<T>['currentSort'],
+) {
+  if (!column.sortable || !onSortChange) {
+    return <th className="table-header">{column.label}</th>
+  }
+
+  const isActive = currentSort?.sortBy === column.key
+  const isDesc = currentSort?.sortDir === 'desc'
+
+  const handleSort = () => {
+    const newSortDir = isActive && isDesc ? 'asc' : 'desc'
+    onSortChange(column.key, newSortDir)
+  }
+
+  return (
+    <th className="table-header table-header--sortable" onClick={handleSort}>
+      {column.label} {isActive && (isDesc ? '↓' : '↑')}
+    </th>
+  )
+}
+
 export function Table<T>({
   data,
   columns,
@@ -34,76 +106,6 @@ export function Table<T>({
   className,
   ...divProps
 }: TableProps<T>) {
-  // Pagination component
-  const PaginationControls = () => {
-    if (totalPages <= 1) return null
-
-    const pages: JSX.Element[] = []
-    const maxVisiblePages = 5
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1)
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => onPageChange?.(i)}
-          disabled={i === currentPage}
-          className={clsx('table-pagination-button', {
-            'table-pagination-button--active': i === currentPage,
-          })}
-        >
-          {i}
-        </button>,
-      )
-    }
-
-    return (
-      <div className="table-pagination">
-        <button
-          onClick={() => onPageChange?.(currentPage - 1)}
-          disabled={currentPage <= 1}
-          className="table-pagination-button cursor-pointer"
-        >
-          Previous
-        </button>
-        {pages}
-        <button
-          onClick={() => onPageChange?.(currentPage + 1)}
-          disabled={currentPage >= totalPages}
-          className="table-pagination-button"
-        >
-          Next
-        </button>
-      </div>
-    )
-  }
-
-  // Sortable header component
-  const SortableHeader = ({ column }: { column: TableColumn<T> }) => {
-    if (!column.sortable || !onSortChange) {
-      return <th className="table-header">{column.label}</th>
-    }
-
-    const isActive = currentSort?.sortBy === column.key
-    const isDesc = currentSort?.sortDir === 'desc'
-
-    const handleSort = () => {
-      const newSortDir = isActive && isDesc ? 'asc' : 'desc'
-      onSortChange(column.key, newSortDir)
-    }
-
-    return (
-      <th className="table-header table-header--sortable" onClick={handleSort}>
-        {column.label} {isActive && (isDesc ? '↓' : '↑')}
-      </th>
-    )
-  }
-
   const tableClasses = clsx('table-container', className)
 
   return (
@@ -115,7 +117,7 @@ export function Table<T>({
           <thead>
             <tr>
               {columns.map((column) => (
-                <SortableHeader key={column.key} column={column} />
+                <Fragment key={column.key}>{renderSortableHeader(column, onSortChange, currentSort)}</Fragment>
               ))}
             </tr>
           </thead>
@@ -133,7 +135,7 @@ export function Table<T>({
         </table>
       )}
 
-      <PaginationControls />
+      {renderPaginationControls(totalPages, currentPage, onPageChange)}
     </div>
   )
 }

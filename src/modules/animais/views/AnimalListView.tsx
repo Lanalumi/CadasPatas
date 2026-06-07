@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -31,11 +30,7 @@ export default function AnimalListView() {
   const { data: animalsResponse, isLoading, error } = useAnimalsList(query)
 
   // Form for search and sorting
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<AnimalsListFilters>({
+  const { register, handleSubmit } = useForm<AnimalsListFilters>({
     resolver: zodResolver(animalsListFiltersSchema),
     defaultValues: {
       search: '',
