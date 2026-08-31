@@ -23,13 +23,12 @@ O projeto consiste no desenvolvimento de uma aplicação voltada para ONGs de re
 
 ### Propostas do Projeto:
 
-1. [Proposta Alivraria](https://github.com/LuiggiMDN/Alivraria/blob/main/Docs/ES2PropostaAlivraria.pdf);
-2. [Diagrama de Caso de Uso](https://github.com/LuiggiMDN/Alivraria/blob/main/Docs/DiagramaDeCasoDeUso.png);
-3. [Diagrama ER](<https://github.com/LuiggiMDN/Alivraria/blob/main/Docs/Diagrama%20ER%20Alivraria%20(1).png>);
-4. [Diagrama de Classes](https://github.com/LuiggiMDN/Alivraria/blob/main/Docs/Classe%20UML.png);
-5. [Telas](https://github.com/LuiggiMDN/Alivraria/tree/main/Docs/Telas%20Finais);
-6. [Protótipo navegável](https://alivraria.vercel.app/);
-7. [Video Apresentação](https://youtu.be/39NUPmnl9Ag).
+1. [Proposta Alivraria]();
+2. [Diagrama de Caso de Uso](https://github.com/Lanalumi/CadasPatas/blob/main/Docs/CadasPatas.png);
+3. [Diagrama ER]();
+4. [Diagrama de Classes]();
+5. [Telas](https://github.com/Lanalumi/CadasPatas/tree/main/Docs/telasCadasPatas);
+6. [Protótipo navegável](https://cadas-patas.vercel.app/);
 
 ---
 
@@ -45,14 +44,13 @@ O projeto consiste no desenvolvimento de uma aplicação voltada para ONGs de re
 
 ### Integrantes e responsáveis:
 
-- React -> [Mirella](https://github.com/mirellafaria), [Luiggi](https://github.com/LuiggiMDN)
-- Node.js -> [Lana](https://github.com/Lanalumi)
-- AWS -> [Maria](https://github.com/menrione), [Camila](https://github.com/ca-milaS2)
+- React -> [Mirella](https://github.com/mirellafaria).
+- Node.js -> [Lana](https://github.com/Lanalumi).
+- AWS -> [Maria](https://github.com/menrione), [Camila](https://github.com/ca-milaS2).
 
 ---
 
 <div align="center">
    
-### *"Alivraria, um café da tarde repleto de **fantasia**"*
 
 <div/>
