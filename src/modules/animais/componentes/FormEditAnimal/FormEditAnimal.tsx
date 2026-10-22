@@ -8,7 +8,7 @@ import { Field } from '@/global/ui/Field/Field'
 import { TextArea } from '@/global/ui/TextArea/TextArea'
 import { UpdateAnimal, Animal } from '../../types'
 import { useUpdateAnimal } from '../../hooks/useUpdateAnimal'
-import { updateAnimalSchema } from '@/schemas/cadastroSchemas'
+import { updateAnimalSchema } from '@/schemas/animalSchema'
 import { toast } from 'react-toastify'
 import { Cores, Pelagens, Sexos } from '../FormNewAnimal/components/especies'
 import { DropDown } from '@/global/ui/DropDown/DropDown'
@@ -314,6 +314,9 @@ export default function FormEditAnimal({
           )}
           <Button id="delete-button" type="button" red onClick={() => onDelete(initialState.id)}>
             {deleteAnimalMutation.isPending ? 'Excluindo...' : 'Excluir'}
+          </Button>
+          <Button id="cancelar-button" type="button" onClick={() => router.push('/animais')}>
+            Cancelar
           </Button>
         </div>
       </form>

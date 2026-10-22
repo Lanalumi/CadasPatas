@@ -19,7 +19,7 @@ export default async function AnimalPage({ params }: { params: Promise<{ idAnima
   const animal = await loadAnimal(idAnimal)
 
   return (
-    <div className="flex flex-col max-w-[calc(100%-6%)] justify-center items-center p-4">
+    <div className="flex flex-col max-w-[94%] justify-center items-center p-4">
       <header className="flex w-full max-w-full flex-col p-4 gap-2 bg-[#FFF9F7] ">
         <h1 className="text-center font-poppins text-[#755835] font-semibold"></h1>
         <div className="flex w-full max-w-full flex-row items-center justify-center gap-2 ">

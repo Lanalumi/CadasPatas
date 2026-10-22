@@ -1,5 +1,5 @@
 import { api } from '@/lib/http/api'
-import { listAnimalsQuerySchema } from '@/schemas/cadastroSchemas'
+import { listAnimalsQuerySchema } from '@/schemas/animalSchema'
 import { ListAnimalsQuery, ListAnimalsResponse } from '../types'
 import { API_URL } from '@/global/constants/api'
 import { useListQuery } from '@/global/hooks/useListQuery'

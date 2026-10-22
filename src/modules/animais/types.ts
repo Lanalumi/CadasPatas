@@ -1,11 +1,11 @@
 import {
   animalPublicSchema,
   animalsListFiltersSchema,
-  createAnimalSchema,
   listAnimalsQuerySchema,
   listAnimalsResponseSchema,
   updateAnimalSchema,
-} from '@/schemas/cadastroSchemas'
+} from '@/schemas/animalSchema'
+import { createAnimalSchema } from '@/schemas/cadastroSchemas'
 
 import { z } from 'zod'
 

@@ -14,34 +14,11 @@ import { Especies, Cores, Sexos, Pelagens } from './components/especies'
 import { createAnimalSchema } from '@/schemas/cadastroSchemas'
 import { useCreateAnimal } from '../../hooks/useCreateAnimal'
 import { ApiError } from '@/lib/client/errors'
+import { parseBrDate } from '@/modules/pessoas/components/FormNewPerson/functions/parseDate'
 
 type AnimalFormInput = Omit<CreateAnimalForm, 'dataNascimento' | 'dataChegada'> & {
   dataNascimento: string
   dataChegada: string
-}
-
-function parseBrDate(value: unknown): Date | null {
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value
-  }
-
-  if (typeof value !== 'string') {
-    return null
-  }
-
-  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value.trim())
-  if (!match) return null
-
-  const day = Number(match[1])
-  const month = Number(match[2])
-  const year = Number(match[3])
-  const date = new Date(year, month - 1, day)
-
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
-    return null
-  }
-
-  return date
 }
 
 export const FormNewAnimal = () => {

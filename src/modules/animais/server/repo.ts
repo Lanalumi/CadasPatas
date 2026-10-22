@@ -1,6 +1,6 @@
 import { Prisma } from '@/generated/prisma/client'
 import { prisma } from '@/lib/db'
-import { listAnimalsQuerySchema } from '@/schemas/cadastroSchemas'
+import { listAnimalsQuerySchema } from '@/schemas/animalSchema'
 
 export const animalById = (id: string) => {
   const where: { id: string } = { id }

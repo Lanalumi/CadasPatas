@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import type { Animal as PrismaAnimal } from '@/generated/prisma/client'
-import { animalPublicSchema, updateAnimalSchema } from '@/schemas/cadastroSchemas'
+import { animalPublicSchema, updateAnimalSchema } from '@/schemas/animalSchema'
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 
