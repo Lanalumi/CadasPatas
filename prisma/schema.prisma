@@ -39,6 +39,19 @@ model Adotante{
   adocao  Adocao[]
 }
 
+model Clinica {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String
+  telefone  String
+  rua       String
+  cidade    String
+  numero    Int
+  bairro    String
+
+  criadoEm  DateTime @default(now())
+}
+
 model Vet{
   id                String @id @default(uuid())
   nome              String
