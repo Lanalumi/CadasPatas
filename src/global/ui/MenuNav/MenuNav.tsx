@@ -1,12 +1,26 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { SummaryTag } from '../SummaryTag/SummaryTag'
 
 export const MenuNav = () => {
   const pathname = usePathname()
   const isActive = (path: string) =>
     pathname === path ? 'bg-[#FFF9F7] rounded-[4px] px-4 w-full items-center justify-center flex' : 'bg-none'
   const router = useRouter()
+  const isComunidadeSection =
+    pathname.startsWith('/comunidade') ||
+    pathname.startsWith('/voluntarios') ||
+    pathname.startsWith('/adotantes') ||
+    pathname.startsWith('/clinicas')
+  const [isOpenComunidade, setIsOpenComunidade] = useState(isComunidadeSection)
+
+  useEffect(() => {
+    if (isComunidadeSection) {
+      setIsOpenComunidade(true)
+    }
+  }, [isComunidadeSection])
   return (
     <div className="fixed top-0 left-0 z-10 flex md:h-[100vh] w-[100vw] h-[10%] flex-col bg-[#D0DAC4] md:max-w-[20%] lg:max-w-[10%] md:w-[20%] lg:w-[10%] ">
       <aside className="flex md:justify-center h-full w-full md:pt-20 p-4">
@@ -28,12 +42,57 @@ export const MenuNav = () => {
               className="cursor-pointer invert mt-1"
             />
           </div>
-          <div className={isActive('/voluntarios')}>
-            <Link href="/voluntarios">Voluntários</Link>
+          <div className={`flex flex-col gap-2  transition-all duration-300 cursor-pointer`}>
+            <SummaryTag
+              title={
+                <Link href="/comunidade" onClick={(event) => event?.stopPropagation()}>
+                  Comunidade
+                </Link>
+              }
+              description={
+                <div>
+                  <div
+                    className={`flex flex-row items-center gap-2 ${isActive('/voluntarios') || isActive('/voluntarios/new')} `}
+                  >
+                    <Link href="/voluntarios">Voluntários</Link>
+                    <img
+                      src="/images/icons/add-button.svg"
+                      alt="add"
+                      width={12}
+                      height={12}
+                      onClick={() => router.push('/voluntarios/new')}
+                      className="cursor-pointer invert mt-1"
+                    />
+                  </div>
+                  <div className={`flex flex-row items-center gap-2 ${isActive('/adotantes')} `}>
+                    <Link href="/adotantes">Adotantes</Link>
+                    <img
+                      src="/images/icons/add-button.svg"
+                      alt="add"
+                      width={12}
+                      height={12}
+                      onClick={() => router.push('/voluntarios/new')}
+                      className="cursor-pointer invert mt-1"
+                    />
+                  </div>
+                  <div className={`flex flex-row items-center gap-2 ${isActive('/clinicas')} `}>
+                    <Link href="/clinicas">Clínicas</Link>
+                    <img
+                      src="/images/icons/add-button.svg"
+                      alt="add"
+                      width={12}
+                      height={12}
+                      onClick={() => router.push('/clinicas/new')}
+                      className="cursor-pointer invert mt-1"
+                    />
+                  </div>
+                </div>
+              }
+              expanded={isOpenComunidade}
+              onExpandedChange={setIsOpenComunidade}
+            />
           </div>
-          <div className={isActive('/veterinarios')}>
-            <Link href="/veterinarios">Veterinários</Link>
-          </div>
+
           <div className={isActive('/logout')}>
             <Link href="/logout">Sair</Link>
           </div>
