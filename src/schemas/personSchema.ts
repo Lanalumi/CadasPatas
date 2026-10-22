@@ -1,0 +1,134 @@
+import { parseStoredDate } from '@/modules/pessoas/components/FormNewPerson/functions/parseDate'
+import z from 'zod'
+
+function dateSchema(message: string) {
+  return z.preprocess((val) => parseStoredDate(val) ?? val, z.date(message))
+}
+
+function optionalDateSchema(message: string) {
+  return z.preprocess((val) => {
+    if (val === null || val === undefined || val === '') return null
+    return parseStoredDate(val) ?? val
+  }, z.date(message).nullable())
+}
+
+export const tipoPessoaSchema = z.object({
+  idTipoPessoa: z.uuid(),
+  nome: z.enum(['voluntario', 'adotante', 'admin']),
+})
+
+export const personRoleSchema = z.enum(['voluntario', 'adotante'], 'Escolha voluntário ou adotante')
+
+export const personEntitySchema = z.object({
+  idPessoa: z.uuid(),
+  idTipoPessoa: z.uuid('Tipo de pessoa inválido'),
+  nome: z.string().min(3, 'Nome é obrigatório'),
+  cpf: z.string().min(11, 'CPF inválido').max(14),
+  dataNascimento: dateSchema('Data inválida. Use dd/mm/aaaa'),
+  endereco: z.string().min(1, 'O endereço é obrigatório'),
+  telefone: z.string().min(10, 'Telefone inválido'),
+  email: z.string().email('E-mail inválido'),
+})
+
+export const createPersonSchema = personEntitySchema.omit({ idPessoa: true, idTipoPessoa: true }).extend({
+  tipo: personRoleSchema,
+  foto: z.string().optional(),
+})
+export const updatePersonSchema = createPersonSchema
+export const personPublicSchema = personEntitySchema.extend({
+  tipo: tipoPessoaSchema.pick({ nome: true }),
+})
+
+export const listPeopleQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().trim().optional(),
+  idTipoPessoa: z.uuid().optional(),
+  sortBy: z.enum(['nome', 'dataNascimento']).default('nome'),
+  sortDir: z.enum(['asc', 'desc']).default('asc'),
+})
+
+export const voluntarioPublicSchema = z.object({
+  id: z.uuid(),
+  nome: z.string(),
+  cpf: z.string(),
+  email: z.string(),
+  telefone: z.string(),
+  cidade: z.string(),
+  dataNascimento: dateSchema('Data inválida'),
+  dataInscricao: dateSchema('Data inválida'),
+  dataSaida: optionalDateSchema('Data inválida'),
+})
+
+export const listVoluntariosQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().trim().optional(),
+  sortBy: z.enum(['dataInscricao', 'nome', 'dataNascimento']).default('dataInscricao'),
+  sortDir: z.enum(['asc', 'desc']).default('desc'),
+})
+
+export const listVoluntariosResponseSchema = z.object({
+  items: z.array(voluntarioPublicSchema),
+  total: z.number().int(),
+  page: z.number().int(),
+  pageSize: z.number().int(),
+})
+
+export const voluntariosListFiltersSchema = listVoluntariosQuerySchema
+  .pick({
+    search: true,
+    sortBy: true,
+    sortDir: true,
+  })
+  .partial()
+
+export const voluntarioSchema = z.object({
+  idPessoa: z.uuid(),
+  dataInscricao: dateSchema('Data inválida. Use dd/mm/aaaa'),
+  dataSaida: optionalDateSchema('Data inválida. Use dd/mm/aaaa'),
+})
+
+export const createVoluntarioSchema = createPersonSchema.extend(voluntarioSchema.omit({ idPessoa: true }).shape)
+
+export const adotantePublicSchema = z.object({
+  id: z.uuid(),
+  nome: z.string(),
+  cpf: z.string(),
+  email: z.string(),
+  telefone: z.string(),
+  cidade: z.string(),
+  aptoDoacao: z.boolean(),
+  dataNascimento: dateSchema('Data inválida'),
+  criadoEm: dateSchema('Data inválida'),
+})
+
+export const listAdotantesQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().trim().optional(),
+  sortBy: z.enum(['criadoEm', 'nome', 'dataNascimento']).default('criadoEm'),
+  sortDir: z.enum(['asc', 'desc']).default('desc'),
+})
+
+export const listAdotantesResponseSchema = z.object({
+  items: z.array(adotantePublicSchema),
+  total: z.number().int(),
+  page: z.number().int(),
+  pageSize: z.number().int(),
+})
+
+export const adotantesListFiltersSchema = listAdotantesQuerySchema
+  .pick({
+    search: true,
+    sortBy: true,
+    sortDir: true,
+  })
+  .partial()
+
+export const adotanteSchema = z.object({
+  idPessoa: z.uuid(),
+  aptoDoacao: z.boolean(),
+})
+
+export const createAdotanteSchema = createPersonSchema.extend(adotanteSchema.omit({ idPessoa: true }).shape)
