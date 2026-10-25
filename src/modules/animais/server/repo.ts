@@ -55,10 +55,17 @@ export async function animalFindMany(raw: unknown) {
   if (search) {
     searchConditions.push(
       { nome: { contains: search, mode: 'insensitive' } },
-      { sexo: { contains: search, mode: 'insensitive' } },
       { raca: { contains: search, mode: 'insensitive' } },
       { especie: { contains: search, mode: 'insensitive' } },
+      { motivoSaida: { contains: search, mode: 'insensitive' } },
     )
+
+    const normalizedSearch = search.trim().toLowerCase()
+    if (normalizedSearch === 'macho') {
+      searchConditions.push({ sexo: true })
+    } else if (normalizedSearch === 'femea' || normalizedSearch === 'fêmea') {
+      searchConditions.push({ sexo: false })
+    }
 
     const parsedDate = tryParseSearchDate(search)
     if (parsedDate) {

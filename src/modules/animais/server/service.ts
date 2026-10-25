@@ -22,7 +22,7 @@ function toPublic(row: unknown) {
   return animalPublicSchema.parse({
     ...entity,
     dataChegada: entity.dataChegada.toISOString(),
-    dataNascimento: entity.dataNascimento.toISOString(),
+    dataNascimento: entity.dataNascimento ? entity.dataNascimento.toISOString() : null,
   })
 }
 export async function listAnimals(rawQuery: unknown) {

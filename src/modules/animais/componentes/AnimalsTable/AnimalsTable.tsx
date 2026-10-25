@@ -59,6 +59,7 @@ export default function AnimalsTable({
       key: 'sexo',
       label: 'Sexo',
       sortable: true,
+      render: (item) => (item.sexo ? 'Macho' : 'Fêmea'),
     },
     {
       key: 'dataChegada',
@@ -70,7 +71,7 @@ export default function AnimalsTable({
       key: 'dataNascimento',
       label: 'Data de nascimento',
       sortable: true,
-      render: (item) => new Date(item.dataNascimento).toLocaleDateString(),
+      render: (item) => (item.dataNascimento ? new Date(item.dataNascimento).toLocaleDateString() : ''),
     },
     {
       key: 'actions',

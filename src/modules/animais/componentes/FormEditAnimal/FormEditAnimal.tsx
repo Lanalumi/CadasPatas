@@ -17,9 +17,11 @@ import { AvatarUpload } from '@/global/ui/AvatarUpload/AvatarUpload'
 import { CheckBox } from '@/global/ui/CheckBox/CheckBox'
 import { useDeleteAnimal } from '../../hooks/useDeleteAnimal'
 
-type AnimalEditFormInput = Omit<UpdateAnimal, 'dataNascimento' | 'dataChegada'> & {
+type AnimalEditFormInput = Omit<UpdateAnimal, 'dataNascimento' | 'dataChegada' | 'sexo' | 'motivoSaida'> & {
   dataNascimento: string
   dataChegada: string
+  sexo: 'femea' | 'macho'
+  motivoSaida: string
 }
 
 function parseBrDate(value: unknown): Date | null {
@@ -46,7 +48,9 @@ function parseBrDate(value: unknown): Date | null {
   return date
 }
 
-function formatBrDate(value: Date | string): string {
+function formatBrDate(value: Date | string | null): string {
+  if (!value) return ''
+
   const date = value instanceof Date ? value : new Date(value)
   if (Number.isNaN(date.getTime())) return ''
 
@@ -57,8 +61,14 @@ function formatBrDate(value: Date | string): string {
   return `${day}/${month}/${year}`
 }
 
-function sameDate(a: Date, b: Date | string): boolean {
+function sameDate(a: Date | null, b: Date | string | null): boolean {
+  if (!a && !b) return true
+  if (!a || !b) return false
   return a.getTime() === new Date(b).getTime()
+}
+
+function sexoLabel(sexo: boolean): 'femea' | 'macho' {
+  return sexo ? 'macho' : 'femea'
 }
 
 export default function FormEditAnimal({
@@ -97,24 +107,24 @@ export default function FormEditAnimal({
   } = useForm<AnimalEditFormInput>({
     defaultValues: {
       nome: initialState.nome,
-      sexo: initialState.sexo,
+      sexo: sexoLabel(initialState.sexo),
       cor: initialState.cor,
       raca: initialState.raca,
       pelagem: initialState.pelagem,
       dataNascimento: formatBrDate(initialState.dataNascimento),
       dataChegada: formatBrDate(initialState.dataChegada),
-      chip: initialState.chip,
+      fivFelv: initialState.fivFelv,
       especie: initialState.especie,
       foto: initialState.foto,
-      observacoes: initialState.observacoes ?? '',
+      motivoSaida: initialState.motivoSaida ?? '',
     },
   })
 
   const onSubmit = (values: AnimalEditFormInput) => {
     setNoChangesMessage(null)
 
-    const dataNascimento = parseBrDate(values.dataNascimento)
-    if (!dataNascimento) {
+    const dataNascimento = values.dataNascimento.trim() ? parseBrDate(values.dataNascimento) : null
+    if (values.dataNascimento.trim() && !dataNascimento) {
       setError('dataNascimento', { message: 'Data inválida. Use dd/mm/aaaa' })
       toast.error('Data de nascimento inválida. Use dd/mm/aaaa')
       return
@@ -129,8 +139,10 @@ export default function FormEditAnimal({
 
     const result = updateAnimalSchema.safeParse({
       ...values,
+      sexo: values.sexo === 'macho',
       dataNascimento,
       dataChegada,
+      motivoSaida: values.motivoSaida.trim() || null,
     })
 
     if (!result.success) {
@@ -168,17 +180,17 @@ export default function FormEditAnimal({
     if (!sameDate(data.dataChegada, initialState.dataChegada)) {
       updates.dataChegada = data.dataChegada
     }
-    if (data.chip !== initialState.chip) {
-      updates.chip = data.chip
+    if (data.fivFelv !== initialState.fivFelv) {
+      updates.fivFelv = data.fivFelv
     }
     if (data.especie !== initialState.especie) {
       updates.especie = data.especie
     }
-    if (data.foto !== initialState.foto) {
+    if ((data.foto ?? null) !== (initialState.foto ?? null)) {
       updates.foto = data.foto
     }
-    if ((data.observacoes ?? '') !== (initialState.observacoes ?? '')) {
-      updates.observacoes = data.observacoes?.trim() || null
+    if ((data.motivoSaida ?? '') !== (initialState.motivoSaida ?? '')) {
+      updates.motivoSaida = data.motivoSaida?.trim() || null
     }
     if (Object.keys(updates).length === 0) {
       setNoChangesMessage('Nenhum campo alterado')
@@ -275,12 +287,12 @@ export default function FormEditAnimal({
                 )}
               />
               <Controller
-                name="chip"
+                name="fivFelv"
                 control={control}
                 render={({ field }) => (
                   <CheckBox
-                    id="chip"
-                    title="Chip"
+                    id="fivFelv"
+                    title="FIV/FeLV"
                     value={field.value ? 'sim' : 'nao'}
                     onChange={(selected) => field.onChange(selected === 'sim')}
                     onBlur={field.onBlur}
@@ -296,10 +308,10 @@ export default function FormEditAnimal({
         </div>
         <div className="flex w-full justify-center">
           <TextArea
-            label="Observações"
-            id="observacoes"
-            placeholder="Fale um pouco sobre o animal..."
-            {...register('observacoes')}
+            label="Motivo de saída"
+            id="motivoSaida"
+            placeholder="Informe o motivo, se o animal já saiu..."
+            {...register('motivoSaida')}
           />
         </div>
         <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
