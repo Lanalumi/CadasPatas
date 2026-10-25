@@ -27,12 +27,14 @@ const animalFields = {
   motivoSaida: z.string().nullable().optional(),
 }
 
-export const animalPublicSchema = z.object({
+export const animalEntitySchema = z.object({
   id: z.uuid(),
   ...animalFields,
 })
 
-export const animalEntitySchema = animalPublicSchema
+export const animalPublicSchema = animalEntitySchema.extend({
+  localizacaoAtual: z.string().nullable().optional(),
+})
 
 export const updateAnimalSchema = z.object(animalFields)
 export const listAnimalsQuerySchema = z.object({

@@ -7,19 +7,7 @@ export const animalById = (id: string) => {
   return prisma.animal.findUnique({ where })
 }
 
-export const animalCreate = (data: {
-  nome: string
-  sexo: string
-  cor: string
-  raca: string
-  pelagem: string
-  dataNascimento: Date
-  chip: boolean
-  foto?: string
-  especie: string
-  dataChegada: Date
-  observacoes?: string | null
-}) => prisma.animal.create({ data })
+export const animalCreate = (data: Prisma.AnimalCreateInput) => prisma.animal.create({ data })
 
 function tryParseSearchDate(value: string): Date | null {
   const trimmed = value.trim()
@@ -84,6 +72,18 @@ export async function animalFindMany(raw: unknown) {
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy: { [sortBy]: sortDir },
+      include: {
+        historicosLocalizacao: {
+          where: { dataSaida: null },
+          orderBy: { dataEntrada: 'desc' },
+          take: 1,
+          include: {
+            localizacao: {
+              select: { tipoLocal: true },
+            },
+          },
+        },
+      },
     }),
     prisma.animal.count({ where }),
   ])

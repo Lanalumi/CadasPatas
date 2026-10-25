@@ -16,9 +16,11 @@ import { useCreateAnimal } from '../../hooks/useCreateAnimal'
 import { ApiError } from '@/lib/client/errors'
 import { parseBrDate } from '@/modules/pessoas/components/FormNewPerson/functions/parseDate'
 
-type AnimalFormInput = Omit<CreateAnimalForm, 'dataNascimento' | 'dataChegada'> & {
+type AnimalFormInput = Omit<CreateAnimalForm, 'dataNascimento' | 'dataChegada' | 'sexo' | 'motivoSaida'> & {
   dataNascimento: string
   dataChegada: string
+  sexo: 'femea' | 'macho'
+  motivoSaida: string
 }
 
 export const FormNewAnimal = () => {
@@ -42,14 +44,14 @@ export const FormNewAnimal = () => {
       sexo: 'femea',
       pelagem: '',
       foto: '',
-      chip: false,
-      observacoes: '',
+      fivFelv: false,
+      motivoSaida: '',
     },
   })
 
   const onSubmit = (values: AnimalFormInput) => {
-    const dataNascimento = parseBrDate(values.dataNascimento)
-    if (!dataNascimento) {
+    const dataNascimento = values.dataNascimento.trim() ? parseBrDate(values.dataNascimento) : null
+    if (values.dataNascimento.trim() && !dataNascimento) {
       setError('dataNascimento', { message: 'Data inválida. Use dd/mm/aaaa' })
       toast.error('Data de nascimento inválida. Use dd/mm/aaaa')
       return
@@ -64,8 +66,11 @@ export const FormNewAnimal = () => {
 
     const result = createAnimalSchema.safeParse({
       ...values,
+      sexo: values.sexo === 'macho',
       dataNascimento,
       dataChegada,
+      motivoSaida: values.motivoSaida.trim() || null,
+      foto: values.foto || null,
     })
 
     if (!result.success) {
@@ -182,12 +187,12 @@ export const FormNewAnimal = () => {
               )}
             />
             <Controller
-              name="chip"
+              name="fivFelv"
               control={control}
               render={({ field }) => (
                 <CheckBox
-                  id="chip"
-                  title="Chip"
+                  id="fivFelv"
+                  title="FIV/FeLV"
                   value={field.value ? 'sim' : 'nao'}
                   onChange={(selected) => field.onChange(selected === 'sim')}
                   onBlur={field.onBlur}
@@ -202,10 +207,10 @@ export const FormNewAnimal = () => {
         </div>
         <div className="flex w-full justify-center">
           <TextArea
-            label="Observações"
-            id="observacoes"
-            placeholder="Fale um pouco sobre o animal..."
-            {...register('observacoes')}
+            label="Motivo de saída"
+            id="motivoSaida"
+            placeholder="Informe o motivo, se o animal já saiu..."
+            {...register('motivoSaida')}
           />
         </div>
         <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
