@@ -165,6 +165,7 @@ model Prescreve {
   id                String @id @default(uuid())
   consultaId        String
   medicamentoId     String
+  tipo              String?
   dosagem           String
   quantidade        Int
   frequencia        String
