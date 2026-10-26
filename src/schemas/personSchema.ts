@@ -30,9 +30,18 @@ export const personEntitySchema = z.object({
   email: z.string().email('E-mail inválido'),
 })
 
-export const createPersonSchema = personEntitySchema.omit({ idPessoa: true, idTipoPessoa: true }).extend({
+export const createPersonSchema = z.object({
   tipo: personRoleSchema,
-  foto: z.string().optional(),
+  nome: z.string().min(3, 'Nome é obrigatório'),
+  cpf: z.string().min(11, 'CPF inválido').max(14),
+  dataNascimento: dateSchema('Data inválida. Use dd/mm/aaaa'),
+  telefone: z.string().min(10, 'Telefone inválido'),
+  rua: z.string().min(1, 'A rua é obrigatória'),
+  numero: z.coerce.number().int('Número inválido').positive('Número inválido'),
+  bairro: z.string().min(1, 'O bairro é obrigatório'),
+  cidade: z.string().min(1, 'A cidade é obrigatória'),
+  dataInicio: dateSchema('Data inválida. Use dd/mm/aaaa'),
+  dataSaida: optionalDateSchema('Data inválida. Use dd/mm/aaaa'),
 })
 export const updatePersonSchema = createPersonSchema
 export const personPublicSchema = personEntitySchema.extend({

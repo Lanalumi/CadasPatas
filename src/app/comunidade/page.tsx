@@ -1,3 +1,5 @@
+import ComunidadeView from './ComunidadeView'
+
 export default function Comunidade() {
-  return <div>ComunidadePage</div>
+  return <ComunidadeView />
 }
