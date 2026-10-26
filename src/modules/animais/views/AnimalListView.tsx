@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import AnimalsTable from '../componentes/AnimalsTable/AnimalsTable'
+import AnimalCards from '../componentes/AnimalCards/AnimalCards'
 import { useAnimalsList } from '../hooks/useAnimalsList'
 import { AnimalsListFilters, ListAnimalsQuery } from '../types'
 import { animalsListFiltersSchema } from '@/schemas/animalSchema'
@@ -54,15 +54,6 @@ export default function AnimalListView() {
     setCurrentPage(newPage)
   }
 
-  const onSortChange = (sortBy: string, sortDir: 'asc' | 'desc') => {
-    setFilters((prev) => ({
-      ...prev,
-      sortBy: sortBy as 'nome' | 'sexo' | 'dataNascimento' | 'dataChegada',
-      sortDir,
-    }))
-    setCurrentPage(1)
-  }
-
   const onPageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize)
     setCurrentPage(1) // Reset to first page when page size changes
@@ -79,7 +70,7 @@ export default function AnimalListView() {
   }
 
   return (
-    <div className="flex flex-col items-center h-lvh">
+    <div className="flex min-h-lvh flex-col items-center pb-8">
       <div className="flex p-4">
         <h1 className="font-poppins font-bold text-[#755835] text-2xl">{'Animais'}</h1>
       </div>
@@ -141,25 +132,36 @@ export default function AnimalListView() {
         </p>
       </div>
 
-      {/* Animals Table */}
       {isLoading ? (
         <div className="text-[#755835]/70 font-poppins font-semibold text-[16px] max-h-[36px] outline-none">
           {'Carregando animais...'}
         </div>
       ) : items.length > 0 ? (
         <>
-          <AnimalsTable
-            items={items}
-            loading={isLoading}
-            totalPages={totalPages}
-            page={page}
-            onPageChange={onPageChange}
-            onSortChange={onSortChange}
-            currentSort={{
-              sortBy: filters.sortBy || 'dataChegada',
-              sortDir: filters.sortDir || 'desc',
-            }}
-          />
+          <AnimalCards items={items} />
+          {totalPages > 1 && (
+            <nav className="mt-4 flex items-center gap-2" aria-label="Paginação">
+              <button
+                type="button"
+                onClick={() => onPageChange(page - 1)}
+                disabled={page <= 1}
+                className="cursor-pointer rounded-[10px] border border-[#3A250B]/30 bg-[#FFF9F7] px-3 py-2 font-poppins text-[12px] font-semibold text-[#755835] disabled:cursor-default disabled:opacity-50"
+              >
+                {'Anterior'}
+              </button>
+              <span className="font-poppins text-[12px] font-semibold text-[#755835]/70">
+                {page} {'/'} {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => onPageChange(page + 1)}
+                disabled={page >= totalPages}
+                className="cursor-pointer rounded-[10px] border border-[#3A250B]/30 bg-[#FFF9F7] px-3 py-2 font-poppins text-[12px] font-semibold text-[#755835] disabled:cursor-default disabled:opacity-50"
+              >
+                {'Próxima'}
+              </button>
+            </nav>
+          )}
         </>
       ) : (
         <div className="no-content">

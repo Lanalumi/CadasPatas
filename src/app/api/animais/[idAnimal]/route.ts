@@ -16,10 +16,10 @@ function toPublicAnimal(animal: PrismaAnimal) {
     pelagem: animal.pelagem,
     dataNascimento: animal.dataNascimento,
     dataChegada: animal.dataChegada,
-    chip: animal.chip,
+    fivFelv: animal.fivFelv,
     foto: animal.foto,
     especie: animal.especie,
-    observacoes: animal.observacoes,
+    motivoSaida: animal.motivoSaida,
   })
 }
 
@@ -53,13 +53,16 @@ export const PATCH = async (request: Request, { params }: { params: Promise<{ id
   try {
     const body = await request.json()
     const data = updateAnimalSchema.partial().parse(body)
-    const { observacoes, ...rest } = data
+    const { motivoSaida, foto, ...rest } = data
 
     const animal = await prisma.animal.update({
       data: {
         ...rest,
-        ...(observacoes !== undefined && {
-          observacoes: observacoes?.trim() || null,
+        ...(motivoSaida !== undefined && {
+          motivoSaida: motivoSaida?.trim() || null,
+        }),
+        ...(foto !== undefined && {
+          foto: foto || null,
         }),
       },
       where: { id: idAnimal },

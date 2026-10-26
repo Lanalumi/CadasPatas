@@ -1,5 +1,6 @@
 export * from './AvatarUpload/AvatarUpload'
 export * from './Button/Button'
+export * from './Card/Card'
 export * from './CheckBox/CheckBox'
 export * from './DropDown/DropDown'
 export * from './Field/Field'

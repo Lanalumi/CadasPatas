@@ -2,6 +2,7 @@ import { getRequestApiUrl } from '@/global/constants/api'
 import { api } from '@/lib/http/api'
 import FormEditAnimal from '@/modules/animais/componentes/FormEditAnimal/FormEditAnimal'
 import type { Animal } from '@/modules/animais/types'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 async function loadAnimal(idAnimal: string): Promise<Animal> {
@@ -26,6 +27,12 @@ export default async function AnimalPage({ params }: { params: Promise<{ idAnima
           <img src="/images/icons/paw.svg" alt="animal" width={24} height={24} />
           <span className="font-poppins font-bold text-2xl text-[#755835]">{animal.nome}</span>
         </div>
+        <Link
+          href={`/animais/${idAnimal}/fichamedica`}
+          className="text-center font-poppins text-sm font-semibold text-[#8AA36C] hover:underline"
+        >
+          Ficha médica
+        </Link>
       </header>
       <FormEditAnimal initialState={animal} id={idAnimal} />
     </div>

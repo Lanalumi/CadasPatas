@@ -13,128 +13,164 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  passwordHash  String    
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
-model Adotante{
-  id                String @id @default(uuid())
-  nome              String
-  cpf               String
-  email             String
-  dataNascimento    DateTime
-  telefone          String
-  rua               String
-  cidade            String
-  numero            Int
-  bairro            String
-  aptoDoacao        Boolean
+model TipoPessoa {
+  id    String @id @default(uuid())
+  tipo  String
+  email String
+  senha String
 
-  criadoEm  DateTime @default(now())
-
-  adocao  Adocao[]
+  pessoas Pessoa[]
 }
 
-model Clinica {
-  id        String   @id @default(uuid())
-  nome      String
-  email     String
-  telefone  String
-  rua       String
-  cidade    String
-  numero    Int
-  bairro    String
+model Pessoa {
+  id             String    @id @default(uuid())
+  tipoId         String
+  nome           String
+  cpf            String
+  dataNascimento DateTime
+  telefone       String
+  rua            String
+  cidade         String
+  numero         Int
+  bairro         String
+  dataInicio     DateTime
+  dataSaida      DateTime?
 
-  criadoEm  DateTime @default(now())
-}
-
-model Vet{
-  id                String @id @default(uuid())
-  nome              String
-  cpf               String
-  email             String
-  dataNascimento    DateTime
-  telefone          String
-  rua               String
-  cidade            String
-  numero            Int
-  bairro            String
-  especializacao    String
-  crmvNum           String
-  crmvUf            String
-
-  criadoEm  DateTime @default(now())
-  consultas Consulta[]
-}
-
-model Voluntario {
-  id                String @id @default(uuid())
-  nome              String
-  cpf               String
-  email             String
-  dataNascimento    DateTime
-  telefone          String
-  rua               String
-  cidade            String
-  numero            Int
-  bairro            String
-  dataInscricao     DateTime
-  dataSaida         DateTime?
-  senha             String
-  
-  criadoEm  DateTime @default(now())
-}
-
-model Animal {
-  id                String @id @default(uuid())
-  nome              String
-  sexo              String
-  cor               String
-  raca              String
-  pelagem           String
-  dataNascimento    DateTime
-  chip              Boolean
-  foto              String?
-  especie           String
-  dataChegada       DateTime @default(now())
-  observacoes       String?
-
-  criadoEm  DateTime @default(now())
-  consultas Consulta[]
-  adocao    Adocao[]
+  tipo    TipoPessoa @relation(fields: [tipoId], references: [id])
+  adocoes Adocao[]
 }
 
 model Adocao {
-  id                String @id @default(uuid())
-  adotanteId        String
-  animalId          String
-  dataAdocao        DateTime
+  pessoaId   String
+  animalId   String
+  dataAdocao DateTime
 
-  adotante    Adotante  @relation(fields:[adotanteId], references: [id])
-  animal      Animal @relation(fields: [animalId], references: [id]) 
+  pessoa Pessoa @relation(fields: [pessoaId], references: [id])
+  animal Animal @relation(fields: [animalId], references: [id])
+
+  @@id([pessoaId, animalId])
+}
+
+model Animal {
+  id             String    @id @default(uuid())
+  nome           String
+  cor            String
+  especie        String
+  raca           String
+  pelagem        String
+  sexo           Boolean  @default(false)
+  fivFelv        Boolean   @default(false)
+  dataNascimento DateTime?
+  dataChegada    DateTime
+  motivoSaida    String?
+  foto           String?
+
+  adocoes               Adocao[]
+  consultas             Consulta[]
+  historicosLocalizacao HistoricoLocalizacao[]
+  historicosPeso        HistoricoPeso[]
+  pesos                 Peso[]
+}
+
+model Localizacao {
+  id        String @id @default(uuid())
+  tipoLocal String
+
+  historicos HistoricoLocalizacao[]
+}
+
+model HistoricoLocalizacao {
+  id            String    @id @default(uuid())
+  animalId      String
+  localizacaoId String
+  status        String
+  dataEntrada   DateTime
+  dataSaida     DateTime?
+
+  animal      Animal      @relation(fields: [animalId], references: [id])
+  localizacao Localizacao @relation(fields: [localizacaoId], references: [id])
+}
+
+model Peso {
+  id             String @id @default(uuid())
+  animalId       String
+  quantidadePeso Float
+
+  animal     Animal          @relation(fields: [animalId], references: [id])
+  historicos HistoricoPeso[]
+}
+
+model HistoricoPeso {
+  id          String   @id @default(uuid())
+  animalId    String
+  pesoId      String
+  status      String
+  dataPesagem DateTime
+
+  animal Animal @relation(fields: [animalId], references: [id])
+  peso   Peso   @relation(fields: [pesoId], references: [id])
+}
+
+model Clinica {
+  id       String @id @default(uuid())
+  nome     String
+  cnpj     String
+  telefone String
+  rua      String
+  cidade   String
+  numero   Int
+  bairro   String
+
+  consultas Consulta[]
+}
+
+model Motivo {
+  id   String @id @default(uuid())
+  nome String
+
+  consultas Consulta[]
 }
 
 model Consulta {
-  id              String   @id @default(uuid())
-  vetId           String   @map("ID_Veterinario")
-  animalId        String   @map("ID_Animal")
-  motivo          String   @db.VarChar(20)
-  observacao      String   @db.VarChar(100)
-  prescricao      String   @db.VarChar(100)
-  dataAtendimento DateTime @db.Date @map("data_atendimento")
+  id              String    @id @default(uuid())
+  clinicaId       String
+  animalId        String
+  motivoId        String
+  observacao      String
+  dataAtendimento DateTime
+  dataRetorno     DateTime?
 
-  veterinario Vet    @relation(fields: [vetId], references: [id])
-  animal      Animal @relation(fields: [animalId], references: [id])
+  clinica     Clinica     @relation(fields: [clinicaId], references: [id])
+  animal      Animal      @relation(fields: [animalId], references: [id])
+  motivo      Motivo      @relation(fields: [motivoId], references: [id])
+  prescricoes Prescreve[]
 }
 
-model FichaMedica {
-  id            String  @id @default(uuid())
-  consultaId    String
-  castracao     Boolean
-  vermifucacao  Boolean
-  vacina        Boolean
+model Medicamento {
+  id   String @id @default(uuid())
+  nome String
+
+  prescricoes Prescreve[]
+}
+
+model Prescreve {
+  id                String @id @default(uuid())
+  consultaId        String
+  medicamentoId     String
+  tipo              String?
+  dosagem           String
+  quantidade        Int
+  frequencia        String
+  duracaoTratamento String
+
+  consulta    Consulta    @relation(fields: [consultaId], references: [id])
+  medicamento Medicamento @relation(fields: [medicamentoId], references: [id])
 }
