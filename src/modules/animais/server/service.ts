@@ -16,6 +16,23 @@ export async function createAnimal(raw: unknown) {
   return created
 }
 
+function currentLocationName(row: unknown): string | null {
+  if (!row || typeof row !== 'object' || !('historicosLocalizacao' in row)) return null
+
+  const historicos = (
+    row as {
+      historicosLocalizacao?: Array<{
+        dataSaida?: Date | null
+        localizacao?: { tipoLocal?: string | null } | null
+      }>
+    }
+  ).historicosLocalizacao
+
+  const current = historicos?.find((item) => item.dataSaida == null)
+  const name = current?.localizacao?.tipoLocal?.trim()
+  return name || null
+}
+
 function toPublic(row: unknown) {
   const entity = animalEntitySchema.parse(row)
 
@@ -23,6 +40,7 @@ function toPublic(row: unknown) {
     ...entity,
     dataChegada: entity.dataChegada.toISOString(),
     dataNascimento: entity.dataNascimento ? entity.dataNascimento.toISOString() : null,
+    localizacaoAtual: currentLocationName(row),
   })
 }
 export async function listAnimals(rawQuery: unknown) {
