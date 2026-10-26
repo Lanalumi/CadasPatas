@@ -20,8 +20,8 @@ export default function ClinicaListView() {
   const query: ListClinicasQuery = {
     page: currentPage,
     pageSize,
-    sortBy: filters.sortBy || 'criadoEm',
-    sortDir: filters.sortDir || 'desc',
+    sortBy: filters.sortBy || 'nome',
+    sortDir: filters.sortDir || 'asc',
     search: filters.search,
   }
 
@@ -31,8 +31,8 @@ export default function ClinicaListView() {
     resolver: zodResolver(clinicasListFiltersSchema),
     defaultValues: {
       search: '',
-      sortBy: 'criadoEm',
-      sortDir: 'desc',
+      sortBy: 'nome',
+      sortDir: 'asc',
     },
   })
 
@@ -53,7 +53,7 @@ export default function ClinicaListView() {
   const onSortChange = (sortBy: string, sortDir: 'asc' | 'desc') => {
     setFilters((prev) => ({
       ...prev,
-      sortBy: sortBy as 'nome' | 'cidade' | 'criadoEm',
+      sortBy: sortBy as 'nome' | 'cidade' | 'cnpj',
       sortDir,
     }))
     setCurrentPage(1)
@@ -87,9 +87,9 @@ export default function ClinicaListView() {
           {...register('sortBy')}
           className="border border-[#3A250B]/30 rounded p-2 text-[#755835]/70 bg-[#FFF9F7] font-poppins font-semibold text-[12px] max-h-[36px] outline-none"
         >
-          <option value="criadoEm">{'Data de cadastro'}</option>
           <option value="nome">{'Nome'}</option>
           <option value="cidade">{'Cidade'}</option>
+          <option value="cnpj">{'CNPJ'}</option>
         </select>
         <select
           {...register('sortDir')}
@@ -145,8 +145,8 @@ export default function ClinicaListView() {
           onPageChange={onPageChange}
           onSortChange={onSortChange}
           currentSort={{
-            sortBy: filters.sortBy || 'criadoEm',
-            sortDir: filters.sortDir || 'desc',
+            sortBy: filters.sortBy || 'nome',
+            sortDir: filters.sortDir || 'asc',
           }}
         />
       ) : (
