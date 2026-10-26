@@ -8,8 +8,8 @@ export function SaudeActions() {
 
   return (
     <div className="flex flex-wrap gap-3">
-      <Button type="button" onClick={() => router.push('/saude/fichas/new')} green icon="/images/icons/add-button.svg">
-        Nova ficha médica
+      <Button type="button" onClick={() => router.push('/saude/consultas/new')} green icon="/images/icons/add-button.svg">
+        Nova consulta
       </Button>
       <Button
         type="button"

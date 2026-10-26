@@ -14,7 +14,24 @@ function formatDate(value: Date) {
 }
 
 async function loadSaudeLists() {
-  const [consultas, prescricoes] = await Promise.all([
+  const [animais, consultas] = await Promise.all([
+    prisma.animal.findMany({
+      orderBy: { nome: 'asc' },
+      select: {
+        id: true,
+        nome: true,
+        consultas: {
+          orderBy: { dataAtendimento: 'desc' },
+          take: 1,
+          select: {
+            dataAtendimento: true,
+            observacao: true,
+            clinica: { select: { nome: true } },
+            motivo: { select: { nome: true } },
+          },
+        },
+      },
+    }),
     prisma.consulta.findMany({
       orderBy: { dataAtendimento: 'desc' },
       select: {
@@ -25,29 +42,40 @@ async function loadSaudeLists() {
         animal: { select: { id: true, nome: true } },
         clinica: { select: { nome: true } },
         motivo: { select: { nome: true } },
-      },
-    }),
-    prisma.prescreve.findMany({
-      orderBy: { consulta: { dataAtendimento: 'desc' } },
-      select: {
-        id: true,
-        dosagem: true,
-        quantidade: true,
-        frequencia: true,
-        duracaoTratamento: true,
-        medicamento: { select: { nome: true } },
-        consulta: {
-          select: {
-            id: true,
-            dataAtendimento: true,
-            animal: { select: { id: true, nome: true } },
-          },
-        },
+        _count: { select: { prescricoes: true } },
       },
     }),
   ])
 
-  const fichas: CommunityCardItem[] = consultas.map((consulta) => {
+  const fichas: CommunityCardItem[] = animais.map((animal) => {
+    const ultima = animal.consultas[0]
+    const atendimento = ultima ? formatDate(ultima.dataAtendimento) : null
+    const searchText = [animal.nome, ultima?.clinica.nome, ultima?.motivo.nome, ultima?.observacao, atendimento?.label]
+      .filter(Boolean)
+      .join(' ')
+
+    return {
+      id: animal.id,
+      nome: animal.nome,
+      href: `/animais/${animal.id}/fichamedica`,
+      searchText,
+      sortValues: {
+        animal: animal.nome,
+        dataAtendimento: atendimento?.sort ?? '',
+        clinica: ultima?.clinica.nome ?? '',
+      },
+      infos: ultima
+        ? [
+            { label: 'Última consulta', value: atendimento?.label ?? '' },
+            { label: 'Clínica', value: ultima.clinica.nome },
+            { label: 'Motivo', value: ultima.motivo.nome },
+            { label: 'Observação', value: ultima.observacao },
+          ]
+        : [{ label: 'Última consulta', value: 'Nenhuma' }],
+    }
+  })
+
+  const historico: CommunityCardItem[] = consultas.map((consulta) => {
     const atendimento = formatDate(consulta.dataAtendimento)
     const retorno = consulta.dataRetorno ? formatDate(consulta.dataRetorno) : null
     const searchText = [
@@ -63,8 +91,8 @@ async function loadSaudeLists() {
 
     return {
       id: consulta.id,
-      nome: consulta.animal.nome,
-      href: `/animais/${consulta.animal.id}/fichamedica#consulta-${consulta.id}`,
+      nome: `${consulta.animal.nome} — ${atendimento.label}`,
+      href: `/animais/${consulta.animal.id}/fichamedica?consulta=${consulta.id}`,
       searchText,
       sortValues: {
         dataAtendimento: atendimento.sort,
@@ -73,60 +101,27 @@ async function loadSaudeLists() {
         motivo: consulta.motivo.nome,
       },
       infos: [
+        { label: 'Animal', value: consulta.animal.nome },
         { label: 'Clínica', value: consulta.clinica.nome },
         { label: 'Motivo', value: consulta.motivo.nome },
-        { label: 'Data de atendimento', value: atendimento.label },
+        { label: 'Prescrições', value: String(consulta._count.prescricoes) },
         { label: 'Retorno', value: retorno?.label ?? '' },
-        { label: 'Observação', value: consulta.observacao },
       ],
     }
   })
 
-  const medicacoes: CommunityCardItem[] = prescricoes.map((prescricao) => {
-    const atendimento = formatDate(prescricao.consulta.dataAtendimento)
-    const animal = prescricao.consulta.animal
-    const searchText = [
-      prescricao.medicamento.nome,
-      animal.nome,
-      prescricao.dosagem,
-      prescricao.frequencia,
-      prescricao.duracaoTratamento,
-      atendimento.label,
-    ].join(' ')
-
-    return {
-      id: prescricao.id,
-      nome: prescricao.medicamento.nome,
-      href: `/animais/${animal.id}/fichamedica#consulta-${prescricao.consulta.id}`,
-      searchText,
-      sortValues: {
-        data: atendimento.sort,
-        medicamento: prescricao.medicamento.nome,
-        animal: animal.nome,
-      },
-      infos: [
-        { label: 'Animal', value: animal.nome },
-        { label: 'Dosagem', value: prescricao.dosagem },
-        { label: 'Quantidade', value: String(prescricao.quantidade) },
-        { label: 'Frequência', value: prescricao.frequencia },
-        { label: 'Duração', value: prescricao.duracaoTratamento },
-        { label: 'Data', value: atendimento.label },
-      ],
-    }
-  })
-
-  return { fichas, medicacoes }
+  return { fichas, historico }
 }
 
 export default async function SaudeAnimalView() {
   let fichas: CommunityCardItem[] = []
-  let medicacoes: CommunityCardItem[] = []
+  let historico: CommunityCardItem[] = []
   let errorLabel: string | undefined
 
   try {
     const lists = await loadSaudeLists()
     fichas = lists.fichas
-    medicacoes = lists.medicacoes
+    historico = lists.historico
   } catch {
     errorLabel = 'Não foi possível carregar a lista'
   }
@@ -144,13 +139,12 @@ export default async function SaudeAnimalView() {
             searchId="search-fichas"
             searchPlaceholder="Pesquisar fichas médicas"
             sortOptions={[
-              { value: 'dataAtendimento', label: 'Data de atendimento' },
               { value: 'animal', label: 'Animal' },
+              { value: 'dataAtendimento', label: 'Última consulta' },
               { value: 'clinica', label: 'Clínica' },
-              { value: 'motivo', label: 'Motivo' },
             ]}
-            defaultSortBy="dataAtendimento"
-            defaultSortDir="desc"
+            defaultSortBy="animal"
+            defaultSortDir="asc"
             items={fichas}
             emptyLabel="Nenhuma ficha médica encontrada"
             filteredEmptyLabel="Tente ajustar os filtros"
@@ -159,18 +153,19 @@ export default async function SaudeAnimalView() {
         </div>
         <div className="h-[28rem] shrink-0 md:h-full md:min-h-0">
           <CommunityColumn
-            heading="Medicações"
-            searchId="search-medicacoes"
-            searchPlaceholder="Pesquisar medicações"
+            heading="Consultas"
+            searchId="search-consultas"
+            searchPlaceholder="Pesquisar consultas"
             sortOptions={[
-              { value: 'data', label: 'Data' },
-              { value: 'medicamento', label: 'Medicamento' },
+              { value: 'dataAtendimento', label: 'Data de atendimento' },
               { value: 'animal', label: 'Animal' },
+              { value: 'clinica', label: 'Clínica' },
+              { value: 'motivo', label: 'Motivo' },
             ]}
-            defaultSortBy="data"
+            defaultSortBy="dataAtendimento"
             defaultSortDir="desc"
-            items={medicacoes}
-            emptyLabel="Nenhuma medicação encontrada"
+            items={historico}
+            emptyLabel="Nenhuma consulta encontrada"
             filteredEmptyLabel="Tente ajustar os filtros"
             errorLabel={errorLabel}
           />
