@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db'
 import { listAnimals } from '@/modules/animais/server/service'
 import { createAnimalSchema } from '@/schemas/cadastroSchemas'
-import { animalPublicSchema } from '@/schemas/animalSchema'
+import { animalPublicSchema, deriveSituacao } from '@/schemas/animalSchema'
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 
@@ -39,6 +39,8 @@ export async function POST(request: Request) {
       foto: animal.foto,
       especie: animal.especie,
       motivoSaida: animal.motivoSaida,
+      adotado: false,
+      situacao: deriveSituacao(animal.motivoSaida, false),
     })
 
     return NextResponse.json(response, { status: 201 })

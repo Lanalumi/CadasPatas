@@ -55,7 +55,7 @@ export const AvatarUpload = ({ label = 'Foto', id, value, disabled = false, onCh
     <div className="flex max-w-60 flex-col items-center gap-2">
       {label && <span className="font-poppins font-semibold text-base text-[#755835]">{label}</span>}
 
-      <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-md border border-dashed border-[#3A250B]/30 bg-[#FFF9F7]">
+      <div className="flex h-40 w-40 items-center justify-center overflow-hidden rounded-md border border-dashed border-[#3A250B]/30 bg-[#FFF9F7]">
         {preview ? (
           <img src={preview} alt="Pré-visualização da foto do animal" className="h-full w-full object-cover" />
         ) : (

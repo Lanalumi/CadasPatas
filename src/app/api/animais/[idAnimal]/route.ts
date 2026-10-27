@@ -1,12 +1,12 @@
 import { prisma } from '@/lib/db'
 import type { Animal as PrismaAnimal } from '@/generated/prisma/client'
-import { animalPublicSchema, updateAnimalSchema } from '@/schemas/animalSchema'
+import { animalPublicSchema, deriveSituacao, updateAnimalSchema } from '@/schemas/animalSchema'
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 
 export const runtime = 'nodejs'
 
-function toPublicAnimal(animal: PrismaAnimal) {
+function toPublicAnimal(animal: PrismaAnimal, adotado: boolean) {
   return animalPublicSchema.parse({
     id: animal.id,
     nome: animal.nome,
@@ -20,6 +20,8 @@ function toPublicAnimal(animal: PrismaAnimal) {
     foto: animal.foto,
     especie: animal.especie,
     motivoSaida: animal.motivoSaida,
+    adotado,
+    situacao: deriveSituacao(animal.motivoSaida, adotado),
   })
 }
 
@@ -28,13 +30,14 @@ export const GET = async (_request: Request, { params }: { params: Promise<{ idA
 
   const animal = await prisma.animal.findUnique({
     where: { id: idAnimal },
+    include: { _count: { select: { adocoes: true } } },
   })
 
   if (!animal) {
     return NextResponse.json({ message: 'Animal não encontrado' }, { status: 404 })
   }
 
-  return NextResponse.json(toPublicAnimal(animal), { status: 200 })
+  return NextResponse.json(toPublicAnimal(animal, animal._count.adocoes > 0), { status: 200 })
 }
 
 export const DELETE = async (_request: Request, { params }: { params: Promise<{ idAnimal: string }> }) => {
@@ -66,9 +69,10 @@ export const PATCH = async (request: Request, { params }: { params: Promise<{ id
         }),
       },
       where: { id: idAnimal },
+      include: { _count: { select: { adocoes: true } } },
     })
 
-    return NextResponse.json(toPublicAnimal(animal), { status: 200 })
+    return NextResponse.json(toPublicAnimal(animal, animal._count.adocoes > 0), { status: 200 })
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json({ message: 'Dados inválidos', error: error.flatten().fieldErrors }, { status: 400 })

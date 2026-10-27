@@ -42,3 +42,63 @@ export const localizacoesListFiltersSchema = listLocalizacoesQuerySchema
     sortDir: true,
   })
   .partial()
+
+function parseEntradaDate(val: unknown) {
+  if (val instanceof Date && !Number.isNaN(val.getTime())) {
+    return new Date(Date.UTC(val.getFullYear(), val.getMonth(), val.getDate()))
+  }
+
+  if (typeof val !== 'string') return val
+
+  const brazilian = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(val.trim())
+  if (brazilian) {
+    const day = Number(brazilian[1])
+    const month = Number(brazilian[2])
+    const year = Number(brazilian[3])
+    const date = new Date(Date.UTC(year, month - 1, day))
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return val
+    return date
+  }
+
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(val.trim())
+  if (!iso) return val
+
+  const year = Number(iso[1])
+  const month = Number(iso[2])
+  const day = Number(iso[3])
+  const date = new Date(Date.UTC(year, month - 1, day))
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return val
+  return date
+}
+
+export const createHistoricoLocalSchema = z.object({
+  localizacaoId: z.string().trim().min(1, 'Selecione o local').pipe(z.uuid('Selecione o local')),
+  dataEntrada: z.preprocess(parseEntradaDate, z.date('Data inválida. Use dd/mm/aaaa')),
+})
+
+export const localOpcaoSchema = z.object({
+  id: z.uuid(),
+  nome: z.string(),
+  tipoLocal: z.string(),
+})
+
+export const historicoLocalRegistroSchema = z.object({
+  id: z.uuid(),
+  localizacaoId: z.uuid(),
+  nome: z.string(),
+  tipoLocal: z.string(),
+  status: z.string(),
+  dataEntrada: z.coerce.date(),
+  dataSaida: z.coerce.date().nullable(),
+})
+
+export const historicoLocalResumoSchema = z.object({
+  atual: historicoLocalRegistroSchema.nullable(),
+  historico: z.array(historicoLocalRegistroSchema),
+  locais: z.array(localOpcaoSchema),
+})
+
+export type CreateHistoricoLocal = z.infer<typeof createHistoricoLocalSchema>
+export type LocalOpcao = z.infer<typeof localOpcaoSchema>
+export type HistoricoLocalRegistro = z.infer<typeof historicoLocalRegistroSchema>
+export type HistoricoLocalResumo = z.infer<typeof historicoLocalResumoSchema>
