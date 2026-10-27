@@ -1,144 +1,92 @@
 'use client'
+
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
-import { SummaryTag } from '../SummaryTag/SummaryTag'
 
 export const MenuNav = () => {
   const pathname = usePathname()
-  const isActive = (path: string) =>
-    pathname === path ? 'bg-[#FFF9F7] rounded-[4px] px-4 w-full items-center justify-center flex' : 'bg-none'
   const router = useRouter()
-  const isComunidadeSection =
-    pathname.startsWith('/comunidade') ||
-    pathname.startsWith('/voluntarios') ||
-    pathname.startsWith('/adotantes') ||
-    pathname.startsWith('/clinicas')
-  const isAnimaisSection = pathname === '/animais' || pathname.startsWith('/animais/')
-  const isSaudeSection = pathname.startsWith('/saude') || pathname.startsWith('/fichamedica')
-  const [isOpenComunidade, setIsOpenComunidade] = useState(isComunidadeSection)
-  const saudeItemRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (isComunidadeSection) {
-      setIsOpenComunidade(true)
-    }
-  }, [isComunidadeSection])
+  const isPathActive = (path: string, exact = false) => {
+    if (exact) return pathname === path
+    return pathname === path || pathname.startsWith(`${path}/`)
+  }
 
-  useEffect(() => {
-    if (isSaudeSection) {
-      saudeItemRef.current?.scrollIntoView({ inline: 'nearest', block: 'nearest' })
-    }
-  }, [isSaudeSection])
+  const getNavItemClass = (active: boolean) =>
+    `flex items-center justify-between w-full px-4 py-3 rounded-2xl font-poppins text-sm font-bold transition-all ${
+      active
+        ? 'bg-[#FFF9F7] text-[#3A250B] shadow-xs'
+        : 'text-[#3A250B]/80 hover:bg-[#FFF9F7]/60 hover:text-[#3A250B]'
+    }`
+
   return (
-    <div className="fixed top-0 left-0 z-10 flex md:h-[100vh] w-[100vw] h-[10%] flex-col bg-[#D0DAC4] md:max-w-[20%] lg:max-w-[10%] md:w-[20%] lg:w-[10%] ">
-      <aside className="flex h-full w-full min-w-0 p-4 md:justify-center md:pt-20">
-        <nav className="flex h-full min-w-0 flex-row flex-nowrap items-center gap-2 overflow-x-auto md:h-auto md:flex-col md:gap-4 md:overflow-visible">
-          <img src="/images/logo.svg" alt="logo" width={60} height={60} />
-          <div className={isActive('/home')}>
-            <Link href="/home">Inicio</Link>
+    <aside className="fixed top-0 left-0 z-30 w-full md:w-56 lg:w-60 h-auto md:h-screen bg-[#D0DAC4] border-r border-[#755835]/15 flex flex-col justify-between p-4 sm:p-5 shadow-sm">
+      
+      {/* Topo: Logo & Marca AbrigaPet + Menu */}
+      <div className="flex flex-col gap-6">
+        
+        {/* Logo e Nome da Plataforma */}
+        <div className="flex items-center gap-3 px-2 pt-2">
+          <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-[#FFF9F7] shrink-0 border border-[#755835]/15 shadow-xs">
+            <img src="/images/logo.svg" alt="Logo AbrigaPet" width={24} height={24} className="object-contain" />
           </div>
-          <div
-            className={`flex flex-row items-center gap-2 ${
-              isAnimaisSection ? 'flex w-full items-center justify-center rounded-[4px] bg-[#FFF9F7] px-4' : 'bg-none'
-            }`}
-          >
-            <Link href="/animais">Animais</Link>
-            <img
-              src="/images/icons/add-button.svg"
-              alt="add"
-              width={12}
-              height={12}
-              onClick={() => router.push('/animais/new')}
-              className="cursor-pointer invert mt-1"
-            />
-          </div>
-          <div className={`flex flex-col gap-2  transition-all duration-300 cursor-pointer`}>
-            <SummaryTag
-              title={
-                <Link href="/comunidade" onClick={(event) => event?.stopPropagation()}>
-                  Comunidade
-                </Link>
-              }
-              description={
-                <div>
-                  <div
-                    className={`flex flex-row items-center gap-2 ${pathname.startsWith('/voluntarios') ? 'bg-[#FFF9F7] rounded-[4px] px-4 w-full items-center justify-center flex' : 'bg-none'} `}
-                  >
-                    <Link href="/voluntarios">Voluntários</Link>
-                    <img
-                      src="/images/icons/add-button.svg"
-                      alt="add"
-                      width={12}
-                      height={12}
-                      onClick={() => router.push('/voluntarios/new')}
-                      className="cursor-pointer invert mt-1"
-                    />
-                  </div>
-                  <div
-                    className={`flex flex-row items-center gap-2 ${pathname.startsWith('/adotantes') ? 'bg-[#FFF9F7] rounded-[4px] px-4 w-full items-center justify-center flex' : 'bg-none'} `}
-                  >
-                    <Link href="/adotantes">Adotantes</Link>
-                    <img
-                      src="/images/icons/add-button.svg"
-                      alt="add"
-                      width={12}
-                      height={12}
-                      onClick={() => router.push('/adotantes/new')}
-                      className="cursor-pointer invert mt-1"
-                    />
-                  </div>
-                  <div className={`flex flex-row items-center gap-2 ${isActive('/clinicas')} `}>
-                    <Link href="/clinicas">Clínicas</Link>
-                    <img
-                      src="/images/icons/add-button.svg"
-                      alt="add"
-                      width={12}
-                      height={12}
-                      onClick={() => router.push('/clinicas/new')}
-                      className="cursor-pointer invert mt-1"
-                    />
-                  </div>
-                </div>
-              }
-              expanded={isOpenComunidade}
-              onExpandedChange={setIsOpenComunidade}
-            />
+          <span className="font-poppins font-extrabold text-lg text-[#3A250B] tracking-tight">
+            AbrigaPet
+          </span>
+        </div>
+
+        {/* Lista de Navegação Principal */}
+        <nav className="flex flex-row md:flex-col items-center gap-1.5 overflow-x-auto md:overflow-visible">
+          
+          <Link href="/home" className={getNavItemClass(isPathActive('/home', true))}>
+            <span>Início</span>
+          </Link>
+
+          <div className={getNavItemClass(isPathActive('/animais'))}>
+            <Link href="/animais" className="flex-1 text-left">
+              Animais
+            </Link>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                router.push('/animais/new')
+              }}
+              title="Cadastrar Animal"
+              className="p-1 rounded-lg hover:bg-[#755835]/10 text-[#3A250B] transition-colors cursor-pointer"
+            >
+              <img src="/images/icons/add-button.svg" alt="Adicionar" width={14} height={14} className="invert opacity-80" />
+            </button>
           </div>
 
-          <div
-            ref={saudeItemRef}
-            className={
-              isSaudeSection
-                ? 'flex items-center justify-center rounded-[4px] bg-[#FFF9F7] px-4 text-center md:w-full'
-                : 'bg-none'
-            }
-          >
-            <Link href="/saude" className="whitespace-nowrap">
-              Saúde animal
-            </Link>
-          </div>
-          <div
-          // ref={saudeItemRef}
-          // className={
-          //   isSaudeSection
-          //     ? 'flex items-center justify-center rounded-[4px] bg-[#FFF9F7] px-4 text-center md:w-full'
-          //     : 'bg-none'
-          // }
-          >
-            <Link href="/gatis" className="whitespace-nowrap">
-              Gatis
-            </Link>
-          </div>
+          <Link href="/comunidade" className={getNavItemClass(isPathActive('/comunidade'))}>
+            <span>Comunidade</span>
+          </Link>
 
-          <div className={isActive('/logout')}>
-            <Link href="/logout">Sair</Link>
-          </div>
+          <Link href="/saude" className={getNavItemClass(isPathActive('/saude') || isPathActive('/fichamedica'))}>
+            <span>Saúde animal</span>
+          </Link>
+
+          <Link href="/gatis" className={getNavItemClass(isPathActive('/gatis'))}>
+            <span>Gatis</span>
+          </Link>
+
         </nav>
-      </aside>
-      <div className="hidden md:flex mt-auto flex w-full">
-        <img src="/images/navFooter.svg" alt="" width={200} height={100} className="max-w-full" />
       </div>
-    </div>
+
+      {/* Rodapé Limpo: Apenas o Botão de Sair da Conta */}
+      <div className="hidden md:flex flex-col pt-4 border-t border-[#755835]/15 mt-auto">
+        <Link
+          href="/logout"
+          className="flex items-center gap-2.5 px-4 py-3 rounded-2xl font-poppins text-sm font-bold text-[#8A3B3B] hover:bg-[#FFF0ED] transition-all"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span>Sair da conta</span>
+        </Link>
+      </div>
+
+    </aside>
   )
 }
