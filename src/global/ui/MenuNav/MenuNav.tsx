@@ -118,6 +118,18 @@ export const MenuNav = () => {
               Saúde animal
             </Link>
           </div>
+          <div
+          // ref={saudeItemRef}
+          // className={
+          //   isSaudeSection
+          //     ? 'flex items-center justify-center rounded-[4px] bg-[#FFF9F7] px-4 text-center md:w-full'
+          //     : 'bg-none'
+          // }
+          >
+            <Link href="/gatis" className="whitespace-nowrap">
+              Gatis
+            </Link>
+          </div>
 
           <div className={isActive('/logout')}>
             <Link href="/logout">Sair</Link>
