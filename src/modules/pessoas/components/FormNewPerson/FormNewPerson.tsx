@@ -1,12 +1,12 @@
 'use client'
 
-import { AvatarUpload, Button, CheckBox, DropDown, Field } from '@/global/ui'
+import { Button, DropDown, Field } from '@/global/ui'
 import { ApiError } from '@/lib/client/errors'
+import { personHref, type PersonRole } from '@/modules/pessoas/personRole'
 import { useCreatePessoa } from '@/modules/pessoas/hooks/useCreatePessoa'
-import { CreatePessoa } from '@/modules/pessoas/types'
-import { createAdotanteSchema, createPersonSchema, createVoluntarioSchema } from '@/schemas/personSchema'
+import { createPersonSchema } from '@/schemas/personSchema'
 import { useRouter } from 'next/navigation'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 
 const personRoles = [
@@ -14,21 +14,32 @@ const personRoles = [
   { label: 'Adotante', value: 'adotante' },
 ] as const
 
-type PersonFormInput = Omit<CreatePessoa, 'dataNascimento' | 'tipo'> & {
+type PersonFormInput = {
+  nome: string
+  cpf: string
   dataNascimento: string
-  tipo: string
-  dataInscricao: string
+  telefone: string
+  rua: string
+  numero: string
+  bairro: string
+  cidade: string
+  dataInicio: string
   dataSaida: string
-  aptoDoacao: boolean
+  tipo: string
 }
 
-export const FormNewPerson = () => {
+const headings: Record<PersonRole | 'pessoa', string> = {
+  pessoa: 'Dados da pessoa',
+  voluntario: 'Dados do voluntário',
+  adotante: 'Dados do adotante',
+}
+
+export const FormNewPerson = ({ role }: { role?: PersonRole }) => {
   const router = useRouter()
   const createPessoaMutation = useCreatePessoa()
 
   const {
     register,
-    control,
     handleSubmit,
     setError,
     watch,
@@ -38,18 +49,19 @@ export const FormNewPerson = () => {
       nome: '',
       cpf: '',
       dataNascimento: '',
-      endereco: '',
       telefone: '',
-      email: '',
-      tipo: '',
-      dataInscricao: '',
+      rua: '',
+      numero: '',
+      bairro: '',
+      cidade: '',
+      dataInicio: '',
       dataSaida: '',
-      aptoDoacao: false,
-      foto: '',
+      tipo: role ?? '',
     },
   })
 
-  const tipo = watch('tipo')
+  const selectedRole = role ?? watch('tipo')
+  const tipo = selectedRole === 'voluntario' || selectedRole === 'adotante' ? selectedRole : null
 
   const reportIssues = (issues: { path: PropertyKey[]; message: string }[]) => {
     for (const issue of issues) {
@@ -63,41 +75,42 @@ export const FormNewPerson = () => {
   }
 
   const onSubmit = (values: PersonFormInput) => {
-    const saved = {
+    if (values.tipo === 'voluntario' && !values.dataInicio.trim()) {
+      setError('dataInicio', { message: 'Informe a data de inscrição' })
+      toast.error('Informe a data de inscrição')
+      return
+    }
+
+    if (values.tipo === 'adotante' && !values.dataInicio.trim()) {
+      setError('dataInicio', { message: 'Informe a data de cadastro' })
+      toast.error('Informe a data de cadastro')
+      return
+    }
+
+    const result = createPersonSchema.safeParse({
+      ...values,
+      dataSaida: values.tipo === 'voluntario' && values.dataSaida.trim() ? values.dataSaida : null,
+    })
+
+    if (!result.success) {
+      reportIssues(result.error.issues)
+      return
+    }
+
+    const createdRole = result.data.tipo
+
+    createPessoaMutation.mutate(result.data, {
       onSuccess: (createdPessoa: { idPessoa: string }) => {
-        toast.success('Pessoa cadastrada com sucesso')
-        router.push(`/pessoas/${createdPessoa.idPessoa}`)
+        toast.success(
+          createdRole === 'voluntario' ? 'Voluntário cadastrado com sucesso' : 'Adotante cadastrado com sucesso',
+        )
+        router.push(personHref(createdPessoa.idPessoa, createdRole))
       },
       onError: (error: unknown) => {
         const message = error instanceof ApiError ? error.message : 'Erro ao cadastrar pessoa, tente novamente'
         toast.error(message)
       },
-    }
-
-    if (values.tipo === 'voluntario') {
-      const result = createVoluntarioSchema.safeParse(values)
-      if (!result.success) {
-        reportIssues(result.error.issues)
-        return
-      }
-
-      createPessoaMutation.mutate(result.data, saved)
-      return
-    }
-
-    if (values.tipo === 'adotante') {
-      const result = createAdotanteSchema.safeParse(values)
-      if (!result.success) {
-        reportIssues(result.error.issues)
-        return
-      }
-
-      createPessoaMutation.mutate(result.data, saved)
-      return
-    }
-
-    const result = createPersonSchema.safeParse(values)
-    reportIssues(result.success ? [{ path: ['tipo'], message: 'Escolha voluntário ou adotante' }] : result.error.issues)
+    })
   }
 
   const validationMessages = Object.values(errors)
@@ -111,7 +124,7 @@ export const FormNewPerson = () => {
       <header className="flex flex-row items-center justify-center gap-2 w-full max-w-full">
         <img src="/images/icons/paw2.svg" alt="paw" width={24} height={24} />
         <div className="flex items-center justify-center text-center ">
-          <span className="text-[#755835] font-poppins font-semibold ">Dados da pessoa</span>
+          <span className="text-[#755835] font-poppins font-semibold ">{headings[tipo ?? 'pessoa']}</span>
         </div>
       </header>
       <form className="flex flex-col max-w-full gap-4 p-4 " onSubmit={handleSubmit(onSubmit)}>
@@ -128,13 +141,24 @@ export const FormNewPerson = () => {
             </ul>
           </div>
         )}
+        {role ? (
+          <input type="hidden" {...register('tipo')} />
+        ) : (
+          <DropDown
+            label="Tipo de pessoa"
+            options={['Selecione', ...personRoles.map((personRoleOption) => personRoleOption.label)]}
+            value={['', ...personRoles.map((personRoleOption) => personRoleOption.value)]}
+            id="tipo"
+            {...register('tipo')}
+          />
+        )}
         <div className="flex md:flex-row flex-col gap-4 max-w-full md:justify-center md:items-center lg:justify-start">
           <div className="flex flex-row gap-4 ">
             <div className="flex flex-wrap flex-col gap-4">
               <Field label="Nome" id="nome" type="text" {...register('nome')} />
               <Field label="CPF" id="cpf" type="text" {...register('cpf')} />
               <Field
-                label="Data de Nascimento"
+                label="Data de nascimento"
                 id="dataNascimento"
                 type="text"
                 placeholder="dd/mm/aaaa"
@@ -143,41 +167,23 @@ export const FormNewPerson = () => {
               <Field label="Telefone" id="telefone" type="tel" {...register('telefone')} />
             </div>
             <div className="flex flex-col gap-4  ">
-              <Field label="E-mail" id="email" type="email" {...register('email')} />
-              <Field label="Endereço" id="endereco" type="text" {...register('endereco')} />
-              <Controller
-                name="foto"
-                control={control}
-                render={({ field }) => (
-                  <AvatarUpload
-                    id="foto"
-                    label="Foto"
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                  />
-                )}
-              />
-              <DropDown
-                label="Tipo de pessoa"
-                options={['Selecione', ...personRoles.map((role) => role.label)]}
-                value={['', ...personRoles.map((role) => role.value)]}
-                id="tipo"
-                {...register('tipo')}
-              />
+              <Field label="Rua" id="rua" type="text" {...register('rua')} />
+              <Field label="Número" id="numero" type="text" {...register('numero')} />
+              <Field label="Bairro" id="bairro" type="text" {...register('bairro')} />
+              <Field label="Cidade" id="cidade" type="text" {...register('cidade')} />
             </div>
           </div>
         </div>
         {tipo === 'voluntario' && (
-          <div className="flex flex-col gap-4">
-            <span className="text-[#755835] font-poppins font-semibold">Dados do voluntário</span>
+          <section className="flex flex-col gap-4 border-t border-[#3A250B]/20 pt-4">
+            <h2 className="font-poppins font-semibold text-[#755835]">Dados do voluntariado</h2>
             <div className="flex flex-wrap gap-4">
               <Field
                 label="Data de inscrição"
                 id="dataInscricao"
                 type="text"
                 placeholder="dd/mm/aaaa"
-                {...register('dataInscricao')}
+                {...register('dataInicio')}
               />
               <Field
                 label="Data de saída"
@@ -187,29 +193,19 @@ export const FormNewPerson = () => {
                 {...register('dataSaida')}
               />
             </div>
-          </div>
+          </section>
         )}
         {tipo === 'adotante' && (
-          <div className="flex flex-col gap-4">
-            <span className="text-[#755835] font-poppins font-semibold">Dados do adotante</span>
-            <Controller
-              name="aptoDoacao"
-              control={control}
-              render={({ field }) => (
-                <CheckBox
-                  id="aptoDoacao"
-                  title="Apto para doação"
-                  value={field.value ? 'sim' : 'nao'}
-                  onChange={(selected) => field.onChange(selected === 'sim')}
-                  onBlur={field.onBlur}
-                  options={[
-                    { label: 'Sim', value: 'sim' },
-                    { label: 'Não', value: 'nao' },
-                  ]}
-                />
-              )}
+          <section className="flex flex-col gap-4 border-t border-[#3A250B]/20 pt-4">
+            <h2 className="font-poppins font-semibold text-[#755835]">Dados do adotante</h2>
+            <Field
+              label="Data de cadastro"
+              id="dataCadastro"
+              type="text"
+              placeholder="dd/mm/aaaa"
+              {...register('dataInicio')}
             />
-          </div>
+          </section>
         )}
         <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
           {isLoading ? (

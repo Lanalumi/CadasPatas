@@ -10,16 +10,17 @@ import { UpdateAnimal, Animal } from '../../types'
 import { useUpdateAnimal } from '../../hooks/useUpdateAnimal'
 import { updateAnimalSchema } from '@/schemas/animalSchema'
 import { toast } from 'react-toastify'
-import { Cores, Pelagens, Sexos } from '../FormNewAnimal/components/especies'
-import { DropDown } from '@/global/ui/DropDown/DropDown'
-import { Especies } from '../FormNewAnimal/components/especies'
 import { AvatarUpload } from '@/global/ui/AvatarUpload/AvatarUpload'
-import { CheckBox } from '@/global/ui/CheckBox/CheckBox'
 import { useDeleteAnimal } from '../../hooks/useDeleteAnimal'
+import { AnimalApearence } from '../AnimalApearence/AnimalApearence'
+import { AnimalHealth } from '../Animalhealth/AnimalHealth'
+import { LocalModal } from './LocalModal'
 
-type AnimalEditFormInput = Omit<UpdateAnimal, 'dataNascimento' | 'dataChegada'> & {
+export type AnimalEditFormInput = Omit<UpdateAnimal, 'dataNascimento' | 'dataChegada' | 'sexo' | 'motivoSaida'> & {
   dataNascimento: string
   dataChegada: string
+  sexo: 'femea' | 'macho'
+  motivoSaida: string
 }
 
 function parseBrDate(value: unknown): Date | null {
@@ -46,7 +47,9 @@ function parseBrDate(value: unknown): Date | null {
   return date
 }
 
-function formatBrDate(value: Date | string): string {
+function formatBrDate(value: Date | string | null): string {
+  if (!value) return ''
+
   const date = value instanceof Date ? value : new Date(value)
   if (Number.isNaN(date.getTime())) return ''
 
@@ -57,8 +60,30 @@ function formatBrDate(value: Date | string): string {
   return `${day}/${month}/${year}`
 }
 
-function sameDate(a: Date, b: Date | string): boolean {
+function sameDate(a: Date | null, b: Date | string | null): boolean {
+  if (!a && !b) return true
+  if (!a || !b) return false
   return a.getTime() === new Date(b).getTime()
+}
+
+function sexoLabel(sexo: boolean): 'femea' | 'macho' {
+  return sexo ? 'macho' : 'femea'
+}
+
+function formValuesFrom(animal: Animal): AnimalEditFormInput {
+  return {
+    nome: animal.nome,
+    sexo: sexoLabel(animal.sexo),
+    cor: animal.cor,
+    raca: animal.raca,
+    pelagem: animal.pelagem,
+    dataNascimento: formatBrDate(animal.dataNascimento),
+    dataChegada: formatBrDate(animal.dataChegada),
+    fivFelv: animal.fivFelv,
+    especie: animal.especie,
+    foto: animal.foto,
+    motivoSaida: animal.motivoSaida ?? '',
+  }
 }
 
 export default function FormEditAnimal({
@@ -72,6 +97,8 @@ export default function FormEditAnimal({
 }) {
   const router = useRouter()
   const updateAnimalMutation = useUpdateAnimal()
+  const [saved, setSaved] = useState(initialState)
+  const [editing, setEditing] = useState(false)
   const [noChangesMessage, setNoChangesMessage] = useState<string | null>(null)
   const deleteAnimalMutation = useDeleteAnimal()
   const onDelete = async (idAnimal: string) => {
@@ -93,28 +120,23 @@ export default function FormEditAnimal({
     handleSubmit,
     control,
     setError,
+    reset,
     formState: { isSubmitting },
   } = useForm<AnimalEditFormInput>({
-    defaultValues: {
-      nome: initialState.nome,
-      sexo: initialState.sexo,
-      cor: initialState.cor,
-      raca: initialState.raca,
-      pelagem: initialState.pelagem,
-      dataNascimento: formatBrDate(initialState.dataNascimento),
-      dataChegada: formatBrDate(initialState.dataChegada),
-      chip: initialState.chip,
-      especie: initialState.especie,
-      foto: initialState.foto,
-      observacoes: initialState.observacoes ?? '',
-    },
+    defaultValues: formValuesFrom(initialState),
   })
+
+  const leaveEditMode = () => {
+    reset(formValuesFrom(saved))
+    setNoChangesMessage(null)
+    setEditing(false)
+  }
 
   const onSubmit = (values: AnimalEditFormInput) => {
     setNoChangesMessage(null)
 
-    const dataNascimento = parseBrDate(values.dataNascimento)
-    if (!dataNascimento) {
+    const dataNascimento = values.dataNascimento.trim() ? parseBrDate(values.dataNascimento) : null
+    if (values.dataNascimento.trim() && !dataNascimento) {
       setError('dataNascimento', { message: 'Data inválida. Use dd/mm/aaaa' })
       toast.error('Data de nascimento inválida. Use dd/mm/aaaa')
       return
@@ -129,8 +151,10 @@ export default function FormEditAnimal({
 
     const result = updateAnimalSchema.safeParse({
       ...values,
+      sexo: values.sexo === 'macho',
       dataNascimento,
       dataChegada,
+      motivoSaida: values.motivoSaida.trim() || null,
     })
 
     if (!result.success) {
@@ -147,38 +171,38 @@ export default function FormEditAnimal({
 
     const data = result.data
     const updates: Partial<UpdateAnimal> = {}
-    if (data.nome !== initialState.nome) {
+    if (data.nome !== saved.nome) {
       updates.nome = data.nome
     }
-    if (data.sexo !== initialState.sexo) {
+    if (data.sexo !== saved.sexo) {
       updates.sexo = data.sexo
     }
-    if (data.cor !== initialState.cor) {
+    if (data.cor !== saved.cor) {
       updates.cor = data.cor
     }
-    if (data.raca !== initialState.raca) {
+    if (data.raca !== saved.raca) {
       updates.raca = data.raca
     }
-    if (data.pelagem !== initialState.pelagem) {
+    if (data.pelagem !== saved.pelagem) {
       updates.pelagem = data.pelagem
     }
-    if (!sameDate(data.dataNascimento, initialState.dataNascimento)) {
+    if (!sameDate(data.dataNascimento, saved.dataNascimento)) {
       updates.dataNascimento = data.dataNascimento
     }
-    if (!sameDate(data.dataChegada, initialState.dataChegada)) {
+    if (!sameDate(data.dataChegada, saved.dataChegada)) {
       updates.dataChegada = data.dataChegada
     }
-    if (data.chip !== initialState.chip) {
-      updates.chip = data.chip
+    if (data.fivFelv !== saved.fivFelv) {
+      updates.fivFelv = data.fivFelv
     }
-    if (data.especie !== initialState.especie) {
+    if (data.especie !== saved.especie) {
       updates.especie = data.especie
     }
-    if (data.foto !== initialState.foto) {
+    if ((data.foto ?? null) !== (saved.foto ?? null)) {
       updates.foto = data.foto
     }
-    if ((data.observacoes ?? '') !== (initialState.observacoes ?? '')) {
-      updates.observacoes = data.observacoes?.trim() || null
+    if ((data.motivoSaida ?? '') !== (saved.motivoSaida ?? '')) {
+      updates.motivoSaida = data.motivoSaida?.trim() || null
     }
     if (Object.keys(updates).length === 0) {
       setNoChangesMessage('Nenhum campo alterado')
@@ -190,8 +214,11 @@ export default function FormEditAnimal({
       {
         onSuccess: (updatedAnimal: Animal) => {
           onSuccess?.()
+          setSaved(updatedAnimal)
+          reset(formValuesFrom(updatedAnimal))
+          setEditing(false)
           toast.success('Animal atualizado com sucesso')
-          router.push(`/animais/${updatedAnimal.id}`)
+          router.refresh()
         },
         onError: () => {
           toast.error('Erro ao atualizar animal')
@@ -203,7 +230,7 @@ export default function FormEditAnimal({
   const isLoading = updateAnimalMutation.isPending || isSubmitting
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
+    <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 ">
       <header className="flex flex-row items-center justify-center gap-2 w-full max-w-full">
         <img src="/images/icons/paw2.svg" alt="paw" width={24} height={24} />
         <div className="flex items-center justify-center text-center ">
@@ -212,112 +239,81 @@ export default function FormEditAnimal({
       </header>
       {updateAnimalMutation.error && <div className="error">{updateAnimalMutation.error.message}</div>}
       {noChangesMessage && <div className="error">{noChangesMessage}</div>}
-      <form className="flex flex-col max-w-full gap-4 p-4" onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex md:flex-row flex-col gap-4 max-w-full md:justify-center md:items-center lg:justify-start">
-          <div className="flex flex-row gap-4 ">
-            <div className="flex flex-row gap-4">
-              <div className="flex flex-wrap flex-col gap-4">
-                <Field label="Data de Chegada" id="dataChegada" type="text" {...register('dataChegada')} />
-                <DropDown
-                  label="Espécie"
-                  options={[Especies[0].label, Especies[1].label]}
-                  value={[Especies[0].value, Especies[1].value]}
-                  id="especie"
-                  {...register('especie')}
-                />
-                <DropDown
-                  label="Cor"
-                  options={Cores.map((cor) => cor.label)}
-                  value={Cores.map((cor) => cor.value)}
-                  id="cor"
-                  {...register('cor')}
-                />
-                <Field label="Raça" id="raça" type="text" {...register('raca')} />
-              </div>
-              <div className="flex flex-col gap-4  ">
-                <Field label="Nome" {...register('nome')} id="nome" type="text" />
-                <Field label="Data de Nascimento" id="dataNascimento" type="text" {...register('dataNascimento')} />
+      <form className="flex max-w-full flex-col gap-4 p-4" onSubmit={handleSubmit(onSubmit)}>
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+          <div className="flex min-w-0 flex-col gap-4">
+            <fieldset disabled={!editing} className="m-0 min-w-0 border-0 p-0">
+              <div id="animal-appearance-container" className="flex flex-col gap-4">
                 <Controller
-                  name="sexo"
+                  name="foto"
                   control={control}
                   render={({ field }) => (
-                    <CheckBox
-                      id="sexo"
-                      title="Sexo"
-                      options={Sexos}
-                      value={field.value}
+                    <AvatarUpload
+                      id="foto"
+                      label="Foto"
+                      disabled={!editing}
+                      value={field.value ?? ''}
                       onChange={field.onChange}
                       onBlur={field.onBlur}
                     />
                   )}
                 />
-                <DropDown
-                  label="Pelagem"
-                  options={Pelagens.map((pelagem) => pelagem.label)}
-                  value={Pelagens.map((pelagem) => pelagem.value)}
-                  id="pelagem"
-                  {...register('pelagem')}
-                />
+                <AnimalApearence register={register} editing={editing} />
               </div>
-            </div>
-            <div className="flex flex-col items-center gap-4">
-              <Controller
-                name="foto"
-                control={control}
-                render={({ field }) => (
-                  <AvatarUpload
-                    id="foto"
-                    label="Foto"
-                    value={initialState.foto ?? ''}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                  />
-                )}
-              />
-              <Controller
-                name="chip"
-                control={control}
-                render={({ field }) => (
-                  <CheckBox
-                    id="chip"
-                    title="Chip"
-                    value={field.value ? 'sim' : 'nao'}
-                    onChange={(selected) => field.onChange(selected === 'sim')}
-                    onBlur={field.onBlur}
-                    options={[
-                      { label: 'Sim', value: 'sim' },
-                      { label: 'Não', value: 'nao' },
-                    ]}
-                  />
-                )}
-              />
+            </fieldset>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                id="voltar-button"
+                type="button"
+                onClick={() => router.push('/animais')}
+                className="cursor-pointer rounded-[10px] border border-[#3A250B]/30 bg-[#FFF9F7] px-4 py-2 font-poppins text-[14px] font-semibold text-[#755835]"
+              >
+                Voltar
+              </Button>
+              {!editing ? (
+                <Button type="button" green icon="/images/icons/edit-button.svg" onClick={() => setEditing(true)}>
+                  Editar
+                </Button>
+              ) : (
+                <>
+                  {isLoading ? (
+                    <Button type="submit" disabled icon="/images/icons/save-button.svg">
+                      Salvando...
+                    </Button>
+                  ) : (
+                    <Button type="submit" green icon="/images/icons/save-button.svg">
+                      Salvar
+                    </Button>
+                  )}
+                  <Button id="delete-button" type="button" red onClick={() => onDelete(saved.id)}>
+                    {deleteAnimalMutation.isPending ? 'Excluindo...' : 'Excluir'}
+                  </Button>
+                  <Button id="cancelar-button" type="button" onClick={leaveEditMode}>
+                    Cancelar
+                  </Button>
+                </>
+              )}
             </div>
           </div>
-        </div>
-        <div className="flex w-full justify-center">
-          <TextArea
-            label="Observações"
-            id="observacoes"
-            placeholder="Fale um pouco sobre o animal..."
-            {...register('observacoes')}
-          />
-        </div>
-        <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
-          {isLoading ? (
-            <Button type="submit" disabled icon="/images/icons/save-button.svg">
-              Salvando...
-            </Button>
-          ) : (
-            <Button type="submit" green icon="/images/icons/save-button.svg">
-              Salvar
-            </Button>
-          )}
-          <Button id="delete-button" type="button" red onClick={() => onDelete(initialState.id)}>
-            {deleteAnimalMutation.isPending ? 'Excluindo...' : 'Excluir'}
-          </Button>
-          <Button id="cancelar-button" type="button" onClick={() => router.push('/animais')}>
-            Cancelar
-          </Button>
+          <div className="flex min-w-0 flex-col gap-4">
+            <fieldset disabled={!editing} className="m-0 border-0 p-0">
+              <Field label="Nome" {...register('nome')} id="nome" type="text" />
+            </fieldset>
+            <AnimalHealth control={control} animalId={id} editing={editing} />
+          </div>
+          <div className="flex min-w-0 flex-col gap-4">
+            <fieldset disabled={!editing} className="m-0 flex flex-col border-0 p-0">
+              <Field label="Data de Chegada" id="dataChegada" type="text" {...register('dataChegada')} />
+              <Field label="Data de Nascimento" id="dataNascimento" type="text" {...register('dataNascimento')} />
+              <TextArea
+                label="Motivo de saída"
+                id="motivoSaida"
+                placeholder="Informe o motivo, se o animal já saiu..."
+                {...register('motivoSaida')}
+              />
+            </fieldset>
+            <LocalModal animalId={id} />
+          </div>
         </div>
       </form>
     </div>

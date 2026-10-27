@@ -50,8 +50,9 @@ export default function ClinicasTable({
       sortable: true,
     },
     {
-      key: 'email',
-      label: 'E-mail',
+      key: 'cnpj',
+      label: 'CNPJ',
+      sortable: true,
     },
     {
       key: 'telefone',
@@ -61,12 +62,6 @@ export default function ClinicasTable({
       key: 'cidade',
       label: 'Cidade',
       sortable: true,
-    },
-    {
-      key: 'criadoEm',
-      label: 'Cadastro',
-      sortable: true,
-      render: (item) => new Date(item.criadoEm).toLocaleDateString(),
     },
     {
       key: 'actions',

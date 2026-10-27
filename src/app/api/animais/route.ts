@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db'
 import { listAnimals } from '@/modules/animais/server/service'
 import { createAnimalSchema } from '@/schemas/cadastroSchemas'
-import { animalPublicSchema } from '@/schemas/animalSchema'
+import { animalPublicSchema, deriveSituacao } from '@/schemas/animalSchema'
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 
@@ -19,10 +19,10 @@ export async function POST(request: Request) {
         pelagem: data.pelagem,
         dataNascimento: data.dataNascimento,
         dataChegada: data.dataChegada,
-        chip: data.chip,
-        foto: data.foto ?? '',
+        fivFelv: data.fivFelv,
+        foto: data.foto || null,
         especie: data.especie,
-        observacoes: data.observacoes?.trim() || null,
+        motivoSaida: data.motivoSaida?.trim() || null,
       },
     })
 
@@ -35,10 +35,12 @@ export async function POST(request: Request) {
       pelagem: animal.pelagem,
       dataNascimento: animal.dataNascimento,
       dataChegada: animal.dataChegada,
-      observacoes: animal.observacoes,
-      chip: animal.chip,
+      fivFelv: animal.fivFelv,
       foto: animal.foto,
       especie: animal.especie,
+      motivoSaida: animal.motivoSaida,
+      adotado: false,
+      situacao: deriveSituacao(animal.motivoSaida, false),
     })
 
     return NextResponse.json(response, { status: 201 })

@@ -159,7 +159,7 @@ export default function AdotanteListView() {
       )}
 
       <div className="mt-6">
-        <Button type="button" onClick={() => route.push('/voluntarios/new')} green icon="/images/icons/add-button.svg">
+        <Button type="button" onClick={() => route.push('/adotantes/new')} green icon="/images/icons/add-button.svg">
           Cadastrar Adotante
         </Button>
       </div>

@@ -6,6 +6,7 @@ type AvatarUploadProps = {
   label?: string
   id?: string
   value?: string
+  disabled?: boolean
   onChange?: (value: string) => void
   onBlur?: () => void
 }
@@ -18,7 +19,7 @@ const readFileAsDataUrl = (file: File): Promise<string> =>
     reader.readAsDataURL(file)
   })
 
-export const AvatarUpload = ({ label = 'Foto', id, value, onChange, onBlur }: AvatarUploadProps) => {
+export const AvatarUpload = ({ label = 'Foto', id, value, disabled = false, onChange, onBlur }: AvatarUploadProps) => {
   const generatedId = useId()
   const inputId = id ?? `avatar-${generatedId}`
   const inputRef = useRef<HTMLInputElement>(null)
@@ -54,7 +55,7 @@ export const AvatarUpload = ({ label = 'Foto', id, value, onChange, onBlur }: Av
     <div className="flex max-w-60 flex-col items-center gap-2">
       {label && <span className="font-poppins font-semibold text-base text-[#755835]">{label}</span>}
 
-      <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-md border border-dashed border-[#3A250B]/30 bg-[#FFF9F7]">
+      <div className="flex h-40 w-40 items-center justify-center overflow-hidden rounded-md border border-dashed border-[#3A250B]/30 bg-[#FFF9F7]">
         {preview ? (
           <img src={preview} alt="Pré-visualização da foto do animal" className="h-full w-full object-cover" />
         ) : (
@@ -62,25 +63,35 @@ export const AvatarUpload = ({ label = 'Foto', id, value, onChange, onBlur }: Av
         )}
       </div>
 
-      <input ref={inputRef} id={inputId} type="file" accept="image/*" className="sr-only" onChange={handleFileChange} />
+      <input
+        ref={inputRef}
+        id={inputId}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        disabled={disabled}
+        onChange={handleFileChange}
+      />
 
-      <div className="flex flex-wrap justify-center gap-2">
-        <label
-          htmlFor={inputId}
-          className="cursor-pointer font-poppins text-sm font-semibold text-[#755835] underline-offset-2 hover:underline"
-        >
-          {preview ? 'Trocar foto' : 'Adicionar foto'}
-        </label>
-        {preview && (
-          <button
-            type="button"
-            onClick={handleRemove}
-            className="cursor-pointer font-poppins text-sm font-semibold text-[#B85454] underline-offset-2 hover:underline"
+      {!disabled && (
+        <div className="flex flex-wrap justify-center gap-2">
+          <label
+            htmlFor={inputId}
+            className="cursor-pointer font-poppins text-sm font-semibold text-[#755835] underline-offset-2 hover:underline"
           >
-            Remover
-          </button>
-        )}
-      </div>
+            {preview ? 'Trocar foto' : 'Adicionar foto'}
+          </label>
+          {preview && (
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="cursor-pointer font-poppins text-sm font-semibold text-[#B85454] underline-offset-2 hover:underline"
+            >
+              Remover
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

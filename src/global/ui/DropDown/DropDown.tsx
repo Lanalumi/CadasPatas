@@ -1,4 +1,6 @@
-type DropDownProps = {
+import { ComponentProps } from 'react'
+
+type DropDownProps = Omit<ComponentProps<'select'>, 'value'> & {
   label?: string
   options: string[]
   value: string[]

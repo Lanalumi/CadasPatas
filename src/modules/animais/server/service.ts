@@ -2,6 +2,7 @@ import { createAnimalSchema, idSchema } from '@/schemas/cadastroSchemas'
 import {
   animalEntitySchema,
   animalPublicSchema,
+  deriveSituacao,
   listAnimalsQuerySchema,
   listAnimalsResponseSchema,
   updateAnimalSchema,
@@ -16,13 +17,41 @@ export async function createAnimal(raw: unknown) {
   return created
 }
 
+function currentLocationName(row: unknown): string | null {
+  if (!row || typeof row !== 'object' || !('historicosLocalizacao' in row)) return null
+
+  const historicos = (
+    row as {
+      historicosLocalizacao?: Array<{
+        dataSaida?: Date | null
+        localizacao?: { nome?: string | null; tipoLocal?: string | null } | null
+      }>
+    }
+  ).historicosLocalizacao
+
+  const current = historicos?.find((item) => item.dataSaida == null)
+  const name = current?.localizacao?.nome?.trim() || current?.localizacao?.tipoLocal?.trim()
+  return name || null
+}
+
+function adopted(row: unknown) {
+  if (!row || typeof row !== 'object' || !('_count' in row)) return false
+
+  const count = (row as { _count?: { adocoes?: number } })._count?.adocoes
+  return (count ?? 0) > 0
+}
+
 function toPublic(row: unknown) {
   const entity = animalEntitySchema.parse(row)
+  const adotado = adopted(row)
 
   return animalPublicSchema.parse({
     ...entity,
     dataChegada: entity.dataChegada.toISOString(),
-    dataNascimento: entity.dataNascimento.toISOString(),
+    dataNascimento: entity.dataNascimento ? entity.dataNascimento.toISOString() : null,
+    localizacaoAtual: currentLocationName(row),
+    adotado,
+    situacao: deriveSituacao(entity.motivoSaida, adotado),
   })
 }
 export async function listAnimals(rawQuery: unknown) {
