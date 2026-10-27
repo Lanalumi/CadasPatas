@@ -81,8 +81,10 @@ model Animal {
 }
 
 model Localizacao {
-  id        String @id @default(uuid())
+  id        String  @id @default(uuid())
+  nome      String
   tipoLocal String
+  ativo     Boolean @default(true)
 
   historicos HistoricoLocalizacao[]
 }

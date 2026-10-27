@@ -180,7 +180,7 @@ export const FormNewAnimal = () => {
                 <AvatarUpload
                   id="foto"
                   label="Foto"
-                  value={field.value ?? ''}
+                  value={field.value as string}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
                 />
