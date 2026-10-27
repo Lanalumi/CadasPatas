@@ -20,7 +20,25 @@ export const createMedicacaoSchema = z.object({
   medicamento: z.string().trim().min(1, 'Informe o medicamento'),
   tipo: z.preprocess(emptyToNull, z.string().trim().nullable()),
   dosagem: z.string().trim().min(1, 'Informe a dosagem'),
-  quantidade: z.coerce.number('Informe a quantidade').int('A quantidade deve ser um número inteiro').positive('A quantidade deve ser maior que zero'),
+  quantidade: z.coerce
+    .number('Informe a quantidade')
+    .int('A quantidade deve ser um número inteiro')
+    .positive('A quantidade deve ser maior que zero'),
   frequencia: z.string().trim().min(1, 'Informe a frequência'),
   duracaoTratamento: z.string().trim().min(1, 'Informe a duração do tratamento'),
 })
+
+export const latestPrescriptionItemSchema = z.object({
+  id: z.uuid(),
+  nome: z.string(),
+  dataInicio: z.string(),
+  proximaDose: z.string(),
+  dosagem: z.string(),
+  periodo: z.string(),
+})
+
+export const latestPrescriptionSchema = z.object({
+  medicamentos: z.array(latestPrescriptionItemSchema),
+})
+
+export type LatestPrescription = z.infer<typeof latestPrescriptionSchema>

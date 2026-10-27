@@ -6,22 +6,24 @@ import { useState } from 'react'
 import { Button } from '@/global/ui/Button/Button'
 import { Field } from '@/global/ui/Field/Field'
 import { TextArea } from '@/global/ui/TextArea/TextArea'
+import { CheckBox } from '@/global/ui/CheckBox/CheckBox'
 import { UpdateAnimal, Animal } from '../../types'
 import { useUpdateAnimal } from '../../hooks/useUpdateAnimal'
 import { updateAnimalSchema } from '@/schemas/animalSchema'
 import { toast } from 'react-toastify'
-import { Cores, Pelagens, Sexos } from '../FormNewAnimal/components/especies'
-import { DropDown } from '@/global/ui/DropDown/DropDown'
-import { Especies } from '../FormNewAnimal/components/especies'
 import { AvatarUpload } from '@/global/ui/AvatarUpload/AvatarUpload'
-import { CheckBox } from '@/global/ui/CheckBox/CheckBox'
 import { useDeleteAnimal } from '../../hooks/useDeleteAnimal'
+import { AnimalApearence } from '../AnimalApearence/AnimalApearence'
+import { AnimalHealth } from '../Animalhealth/AnimalHealth'
+import { LocalModal } from './LocalModal'
 
-type AnimalEditFormInput = Omit<UpdateAnimal, 'dataNascimento' | 'dataChegada' | 'sexo' | 'motivoSaida'> & {
+export type AnimalEditFormInput = Omit<UpdateAnimal, 'dataNascimento' | 'dataChegada' | 'sexo' | 'motivoSaida'> & {
   dataNascimento: string
   dataChegada: string
   sexo: 'femea' | 'macho'
   motivoSaida: string
+  fiv?: boolean
+  felv?: boolean
 }
 
 function parseBrDate(value: unknown): Date | null {
@@ -81,6 +83,8 @@ function formValuesFrom(animal: Animal): AnimalEditFormInput {
     dataNascimento: formatBrDate(animal.dataNascimento),
     dataChegada: formatBrDate(animal.dataChegada),
     fivFelv: animal.fivFelv,
+    fiv: Boolean((animal as any).fiv ?? animal.fivFelv),
+    felv: Boolean((animal as any).felv ?? false),
     especie: animal.especie,
     foto: animal.foto,
     motivoSaida: animal.motivoSaida ?? '',
@@ -102,6 +106,7 @@ export default function FormEditAnimal({
   const [editing, setEditing] = useState(false)
   const [noChangesMessage, setNoChangesMessage] = useState<string | null>(null)
   const deleteAnimalMutation = useDeleteAnimal()
+
   const onDelete = async (idAnimal: string) => {
     if (!confirm('Tem certeza que deseja excluir este animal?')) return
 
@@ -156,6 +161,7 @@ export default function FormEditAnimal({
       dataNascimento,
       dataChegada,
       motivoSaida: values.motivoSaida.trim() || null,
+      fivFelv: Boolean(values.fiv || values.felv || values.fivFelv),
     })
 
     if (!result.success) {
@@ -172,39 +178,19 @@ export default function FormEditAnimal({
 
     const data = result.data
     const updates: Partial<UpdateAnimal> = {}
-    if (data.nome !== saved.nome) {
-      updates.nome = data.nome
-    }
-    if (data.sexo !== saved.sexo) {
-      updates.sexo = data.sexo
-    }
-    if (data.cor !== saved.cor) {
-      updates.cor = data.cor
-    }
-    if (data.raca !== saved.raca) {
-      updates.raca = data.raca
-    }
-    if (data.pelagem !== saved.pelagem) {
-      updates.pelagem = data.pelagem
-    }
-    if (!sameDate(data.dataNascimento, saved.dataNascimento)) {
-      updates.dataNascimento = data.dataNascimento
-    }
-    if (!sameDate(data.dataChegada, saved.dataChegada)) {
-      updates.dataChegada = data.dataChegada
-    }
-    if (data.fivFelv !== saved.fivFelv) {
-      updates.fivFelv = data.fivFelv
-    }
-    if (data.especie !== saved.especie) {
-      updates.especie = data.especie
-    }
-    if ((data.foto ?? null) !== (saved.foto ?? null)) {
-      updates.foto = data.foto
-    }
-    if ((data.motivoSaida ?? '') !== (saved.motivoSaida ?? '')) {
-      updates.motivoSaida = data.motivoSaida?.trim() || null
-    }
+
+    if (data.nome !== saved.nome) updates.nome = data.nome
+    if (data.sexo !== saved.sexo) updates.sexo = data.sexo
+    if (data.cor !== saved.cor) updates.cor = data.cor
+    if (data.raca !== saved.raca) updates.raca = data.raca
+    if (data.pelagem !== saved.pelagem) updates.pelagem = data.pelagem
+    if (!sameDate(data.dataNascimento, saved.dataNascimento)) updates.dataNascimento = data.dataNascimento
+    if (!sameDate(data.dataChegada, saved.dataChegada)) updates.dataChegada = data.dataChegada
+    if (data.fivFelv !== saved.fivFelv) updates.fivFelv = data.fivFelv
+    if (data.especie !== saved.especie) updates.especie = data.especie
+    if ((data.foto ?? null) !== (saved.foto ?? null)) updates.foto = data.foto
+    if ((data.motivoSaida ?? '') !== (saved.motivoSaida ?? '')) updates.motivoSaida = data.motivoSaida?.trim() || null
+
     if (Object.keys(updates).length === 0) {
       setNoChangesMessage('Nenhum campo alterado')
       return
@@ -231,41 +217,63 @@ export default function FormEditAnimal({
   const isLoading = updateAnimalMutation.isPending || isSubmitting
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
-      <header className="flex flex-row items-center justify-center gap-2 w-full max-w-full">
-        <img src="/images/icons/paw2.svg" alt="paw" width={24} height={24} />
-        <div className="flex items-center justify-center text-center ">
-          <span className="text-[#755835] font-poppins font-semibold ">Dados do animal</span>
+    <div className="w-full max-w-5xl mx-auto rounded-3xl border border-[#755835]/20 bg-white p-6 sm:p-8 shadow-[0_10px_30px_rgba(58,37,11,0.05)]">
+      
+      {/* Cabeçalho Centralizado: Nome e Tag "Disponível" */}
+      <header className="flex flex-col items-center justify-center text-center gap-2 pb-6 mb-6 border-b border-[#755835]/15">
+        <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-[#755835]/10 text-[#755835] shrink-0">
+            <img src="/images/icons/paw2.svg" alt="Patinha" width={22} height={22} className="object-contain" />
+          </div>
+          <h1 className="text-2xl font-bold text-[#3A250B] font-poppins tracking-tight">
+            {saved.nome || 'Animal'}
+          </h1>
+          <span className="bg-[#FFF9F7] text-[#755835] border border-[#755835]/40 text-xs font-semibold font-poppins px-3 py-1 rounded-xl shadow-xs">
+            Disponível
+          </span>
         </div>
+        <p className="text-xs text-[#755835]/80 font-poppins">
+          {editing ? 'Modo de Edição ativado — altere os dados desejados abaixo' : 'Ficha de cadastro e histórico de saúde do resgatado'}
+        </p>
       </header>
-      {updateAnimalMutation.error && <div className="error">{updateAnimalMutation.error.message}</div>}
-      {noChangesMessage && <div className="error">{noChangesMessage}</div>}
-      <form className="flex flex-col max-w-full gap-4 p-4" onSubmit={handleSubmit(onSubmit)}>
-        <fieldset disabled={!editing} className="m-0 flex w-full min-w-0 flex-col gap-4 border-0 p-0">
-          <div className="flex md:flex-row flex-col gap-4 max-w-full md:justify-center md:items-center lg:justify-start">
-            <div className="flex flex-row gap-4 ">
-              <div className="flex flex-row gap-4">
-                <div className="flex flex-wrap flex-col gap-4">
-                  <Field label="Data de Chegada" id="dataChegada" type="text" {...register('dataChegada')} />
-                  <DropDown
-                    label="Espécie"
-                    options={[Especies[0].label, Especies[1].label]}
-                    value={[Especies[0].value, Especies[1].value]}
-                    id="especie"
-                    {...register('especie')}
-                  />
-                  <DropDown
-                    label="Cor"
-                    options={Cores.map((cor) => cor.label)}
-                    value={Cores.map((cor) => cor.value)}
-                    id="cor"
-                    {...register('cor')}
-                  />
-                  <Field label="Raça" id="raça" type="text" {...register('raca')} />
-                </div>
-                <div className="flex flex-col gap-4  ">
-                  <Field label="Nome" {...register('nome')} id="nome" type="text" />
-                  <Field label="Data de Nascimento" id="dataNascimento" type="text" {...register('dataNascimento')} />
+
+      {/* Alertas de Notificação */}
+      {updateAnimalMutation.error && (
+        <div role="alert" className="mb-4 rounded-2xl border border-[#B85454]/30 bg-[#FFF0ED] p-4 text-xs font-poppins text-[#8A3B3B]">
+          {updateAnimalMutation.error.message}
+        </div>
+      )}
+      {noChangesMessage && (
+        <div role="alert" className="mb-4 rounded-2xl border border-[#755835]/30 bg-[#FDF8F3] p-4 text-xs font-poppins text-[#755835]">
+          {noChangesMessage}
+        </div>
+      )}
+
+      <form className="flex flex-col gap-6" onSubmit={handleSubmit(onSubmit)}>
+        
+        {/* Layout Principal em 2 Colunas */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Lado Esquerdo: Formulário de Dados */}
+          <div className="lg:col-span-8 flex flex-col gap-5">
+            <fieldset disabled={!editing} className="m-0 border-0 p-0 flex flex-col gap-5 disabled:opacity-95">
+              
+              {/* Linha 1: Nome e Data de Chegada */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="Nome" {...register('nome')} id="nome" type="text" />
+                <Field label="Data de Chegada" id="dataChegada" type="text" {...register('dataChegada')} />
+              </div>
+
+              {/* Aparência (Espécie, Cor, Raça, Pelagem) */}
+              <div className="[&_fieldset]:border-0 [&_fieldset]:p-0 [&_legend]:hidden [&_label]:text-xs [&_label]:font-semibold [&_label]:text-[#3A250B] [&_div]:flex [&_div]:flex-col [&_div]:gap-1.5 [&_select]:w-full [&_select]:h-[42px] [&_input]:h-[42px]">
+                <AnimalApearence register={register} editing={editing} />
+              </div>
+
+              {/* Linha 2: Data de Nascimento + Sexo */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                <Field label="Data de Nascimento" id="dataNascimento" type="text" {...register('dataNascimento')} />
+
+                <div className="flex flex-col justify-end pb-1">
                   <Controller
                     name="sexo"
                     control={control}
@@ -273,99 +281,145 @@ export default function FormEditAnimal({
                       <CheckBox
                         id="sexo"
                         title="Sexo"
-                        options={Sexos}
+                        options={[
+                          { label: 'Fêmea', value: 'femea' },
+                          { label: 'Macho', value: 'macho' },
+                        ]}
                         value={field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                       />
                     )}
                   />
-                  <DropDown
-                    label="Pelagem"
-                    options={Pelagens.map((pelagem) => pelagem.label)}
-                    value={Pelagens.map((pelagem) => pelagem.value)}
-                    id="pelagem"
-                    {...register('pelagem')}
-                  />
                 </div>
               </div>
-              <div className="flex flex-col items-center gap-4">
-                <Controller
-                  name="foto"
-                  control={control}
-                  render={({ field }) => (
-                    <AvatarUpload
-                      id="foto"
-                      label="Foto"
-                      disabled={!editing}
-                      value={saved.foto ?? ''}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                    />
-                  )}
-                />
-                <Controller
-                  name="fivFelv"
-                  control={control}
-                  render={({ field }) => (
-                    <CheckBox
-                      id="fivFelv"
-                      title="FIV/FeLV"
-                      value={field.value ? 'sim' : 'nao'}
-                      onChange={(selected) => field.onChange(selected === 'sim')}
-                      onBlur={field.onBlur}
-                      options={[
-                        { label: 'Sim', value: 'sim' },
-                        { label: 'Não', value: 'nao' },
-                      ]}
-                    />
-                  )}
-                />
-              </div>
+
+            </fieldset>
+
+            {/* Local Atual */}
+            <div className="pt-3 border-t border-[#755835]/10">
+              <LocalModal animalId={id} />
             </div>
           </div>
-          <div className="flex w-full justify-center">
+
+          {/* Lado Direito: Card Lateral da Foto e Saúde */}
+          <div className="lg:col-span-4 flex flex-col items-center justify-between gap-6 p-6 rounded-2xl bg-[#FDF8F3] border border-[#755835]/15 h-full">
+            
+            {/* Foto do Animal */}
+            <div className="w-full flex flex-col items-center">
+              <Controller
+                name="foto"
+                control={control}
+                render={({ field }) => (
+                  <AvatarUpload
+                    id="foto"
+                    label="Foto do Animal"
+                    disabled={!editing}
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
+              />
+            </div>
+
+            {/* Sorologia: Checkboxes FIV / FeLV */}
+            <div className="w-full pt-4 border-t border-[#755835]/15 flex flex-col gap-3">
+              <span className="text-sm font-semibold text-[#3A250B] font-poppins">
+                Testes de Sorologia:
+              </span>
+              <div className="flex flex-col gap-2.5 font-poppins text-sm text-[#755835]">
+                <label className={`flex items-center gap-3 ${editing ? 'cursor-pointer' : 'cursor-not-allowed'} select-none hover:opacity-80 transition-opacity`}>
+                  <input
+                    type="checkbox"
+                    disabled={!editing}
+                    className="w-5 h-5 rounded border-[#755835]/40 text-[#755835] focus:ring-[#755835] accent-[#755835] cursor-pointer disabled:opacity-60"
+                    {...register('fiv')}
+                  />
+                  <span className="font-medium text-[#3A250B]">Positivo para FIV</span>
+                </label>
+
+                <label className={`flex items-center gap-3 ${editing ? 'cursor-pointer' : 'cursor-not-allowed'} select-none hover:opacity-80 transition-opacity`}>
+                  <input
+                    type="checkbox"
+                    disabled={!editing}
+                    className="w-5 h-5 rounded border-[#755835]/40 text-[#755835] focus:ring-[#755835] accent-[#755835] cursor-pointer disabled:opacity-60"
+                    {...register('felv')}
+                  />
+                  <span className="font-medium text-[#3A250B]">Positivo para FeLV</span>
+                </label>
+              </div>
+              <p className="text-[11px] text-[#755835]/70 italic font-poppins mt-1">
+                * Deixe desmarcado se for negativo para os dois.
+              </p>
+            </div>
+
+            {/* Bloco Saúde: Sem Borda, Sem "Saúde" Duplicado e com Links Organizados */}
+            <div className="w-full pt-4 border-t border-[#755835]/15 flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-[#3A250B] font-poppins">
+                Saúde
+              </span>
+              <div className="flex flex-col gap-1 font-poppins text-xs font-semibold text-[#5C7C3A] [&_fieldset]:border-0 [&_fieldset]:p-0 [&_fieldset]:m-0 [&_fieldset]:bg-transparent [&_fieldset]:shadow-none [&_div]:border-0 [&_div]:p-0 [&_div]:m-0 [&_div]:bg-transparent [&_div]:shadow-none [&_legend]:hidden [&_h2]:hidden [&_h3]:hidden [&_h4]:hidden [&_input]:hidden [&_label:has(input)]:hidden [&_div:has(>input)]:hidden [&_a]:text-[#5C7C3A] [&_a]:font-semibold [&_a]:text-xs [&_a]:block [&_a]:py-0.5 [&_a]:hover:underline [&_button]:text-[#5C7C3A] [&_button]:font-semibold [&_button]:text-xs [&_button]:block [&_button]:py-0.5 [&_button]:hover:underline">
+                <AnimalHealth control={control} animalId={id} editing={editing} />
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* Motivo de Saída: Totalmente Alinhado à Esquerda */}
+        <div className="w-full pt-2 flex flex-col items-start text-left [&_label]:text-left [&_label]:w-full [&_textarea]:w-full">
+          <fieldset disabled={!editing} className="m-0 border-0 p-0 w-full text-left">
             <TextArea
               label="Motivo de saída"
               id="motivoSaida"
-              placeholder="Informe o motivo, se o animal já saiu..."
+              placeholder="Informe o motivo caso o animal já tenha sido adotado ou saído do abrigo..."
               {...register('motivoSaida')}
             />
-          </div>
-        </fieldset>
-        <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
-          <Button
+          </fieldset>
+        </div>
+
+        {/* Rodapé com Botões de Ação */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#755835]/15 mt-2">
+          <button
             id="voltar-button"
             type="button"
             onClick={() => router.push('/animais')}
-            className="cursor-pointer rounded-[10px] border border-[#3A250B]/30 bg-[#FFF9F7] px-4 py-2 font-poppins text-[14px] font-semibold text-[#755835]"
+            className="cursor-pointer rounded-xl border border-[#755835]/30 bg-[#FDF8F3] hover:bg-[#755835]/10 px-4 py-2.5 font-poppins text-xs font-semibold text-[#3A250B] transition-all"
           >
-            Voltar
-          </Button>
-          {!editing ? (
-            <Button type="button" green icon="/images/icons/edit-button.svg" onClick={() => setEditing(true)}>
-              Editar
-            </Button>
-          ) : (
-            <>
-              {isLoading ? (
-                <Button type="submit" disabled icon="/images/icons/save-button.svg">
-                  Salvando...
-                </Button>
-              ) : (
-                <Button type="submit" green icon="/images/icons/save-button.svg">
-                  Salvar
-                </Button>
-              )}
-              <Button id="delete-button" type="button" red onClick={() => onDelete(saved.id)}>
-                {deleteAnimalMutation.isPending ? 'Excluindo...' : 'Excluir'}
+            ← Voltar para lista
+          </button>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {!editing ? (
+              <Button type="button" green icon="/images/icons/edit-button.svg" onClick={() => setEditing(true)}>
+                Editar Animal
               </Button>
-              <Button id="cancelar-button" type="button" onClick={leaveEditMode}>
-                Cancelar
-              </Button>
-            </>
-          )}
+            ) : (
+              <>
+                {isLoading ? (
+                  <Button type="submit" disabled icon="/images/icons/save-button.svg">
+                    Salvando...
+                  </Button>
+                ) : (
+                  <Button type="submit" green icon="/images/icons/save-button.svg">
+                    Salvar Alterações
+                  </Button>
+                )}
+
+                <Button id="delete-button" type="button" red onClick={() => onDelete(saved.id)}>
+                  {deleteAnimalMutation.isPending ? 'Excluindo...' : 'Excluir'}
+                </Button>
+
+                <Button id="cancelar-button" type="button" onClick={leaveEditMode}>
+                  Cancelar
+                </Button>
+              </>
+            )}
+          </div>
         </div>
+
       </form>
     </div>
   )

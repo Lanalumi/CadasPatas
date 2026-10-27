@@ -4,7 +4,10 @@ import { listAnimalsQuerySchema } from '@/schemas/animalSchema'
 
 export const animalById = (id: string) => {
   const where: { id: string } = { id }
-  return prisma.animal.findUnique({ where })
+  return prisma.animal.findUnique({
+    where,
+    include: { _count: { select: { adocoes: true } } },
+  })
 }
 
 export const animalCreate = (data: Prisma.AnimalCreateInput) => prisma.animal.create({ data })
@@ -73,13 +76,14 @@ export async function animalFindMany(raw: unknown) {
       take: pageSize,
       orderBy: { [sortBy]: sortDir },
       include: {
+        _count: { select: { adocoes: true } },
         historicosLocalizacao: {
           where: { dataSaida: null },
           orderBy: { dataEntrada: 'desc' },
           take: 1,
           include: {
             localizacao: {
-              select: { tipoLocal: true },
+              select: { nome: true, tipoLocal: true },
             },
           },
         },
@@ -92,6 +96,10 @@ export async function animalFindMany(raw: unknown) {
 }
 
 export const animalUpdate = (id: string, data: Prisma.AnimalUpdateInput) =>
-  prisma.animal.update({ where: { id }, data })
+  prisma.animal.update({
+    where: { id },
+    data,
+    include: { _count: { select: { adocoes: true } } },
+  })
 
 export const animalDelete = (id: string) => prisma.animal.delete({ where: { id } })

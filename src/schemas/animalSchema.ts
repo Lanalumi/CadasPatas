@@ -32,8 +32,33 @@ export const animalEntitySchema = z.object({
   ...animalFields,
 })
 
+export const situacaoAnimalSchema = z.enum(['abrigo', 'adotado', 'obito', 'saiu'])
+
+const obitoPattern = /obito|morte|morreu|faleceu|falecimento|eutanasia/
+
+export function deriveSituacao(motivoSaida: string | null | undefined, adotado: boolean) {
+  if (adotado) return 'adotado' as const
+
+  const motivo = motivoSaida?.trim() ?? ''
+  if (!motivo) return 'abrigo' as const
+
+  const normalized = motivo.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+
+  if (obitoPattern.test(normalized)) return 'obito' as const
+  return 'saiu' as const
+}
+
+export const situacaoAnimalLabel = {
+  abrigo: 'Disponível',
+  adotado: 'Adotado',
+  obito: 'Faleceu',
+  saiu: 'Saiu',
+} as const
+
 export const animalPublicSchema = animalEntitySchema.extend({
   localizacaoAtual: z.string().nullable().optional(),
+  adotado: z.boolean(),
+  situacao: situacaoAnimalSchema,
 })
 
 export const updateAnimalSchema = z.object(animalFields)
