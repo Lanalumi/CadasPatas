@@ -21,6 +21,8 @@ type AnimalFormInput = Omit<CreateAnimalForm, 'dataNascimento' | 'dataChegada' |
   dataChegada: string
   sexo: 'femea' | 'macho'
   motivoSaida: string
+  fiv?: boolean
+  felv?: boolean
 }
 
 export const FormNewAnimal = () => {
@@ -44,7 +46,8 @@ export const FormNewAnimal = () => {
       sexo: 'femea',
       pelagem: '',
       foto: '',
-      fivFelv: false,
+      fiv: false,
+      felv: false,
       motivoSaida: '',
     },
   })
@@ -71,6 +74,9 @@ export const FormNewAnimal = () => {
       dataChegada,
       motivoSaida: values.motivoSaida.trim() || null,
       foto: values.foto || null,
+      fiv: Boolean(values.fiv),
+      felv: Boolean(values.felv),
+      fivFelv: Boolean(values.fiv || values.felv),
     })
 
     if (!result.success) {
@@ -88,7 +94,6 @@ export const FormNewAnimal = () => {
     createAnimalMutation.mutate(result.data as CreateAnimal, {
       onSuccess: (createdAnimal) => {
         toast.success('Animal cadastrado com sucesso')
-        // Navigate immediately without clearing form state to prevent freezing
         router.push(`/animais/${createdAnimal.id}`)
       },
       onError: (error) => {
@@ -104,32 +109,52 @@ export const FormNewAnimal = () => {
 
   const isLoading = createAnimalMutation.isPending || isSubmitting
 
+  // Classe utilitária para padronizar e forçar os Dropdowns a colocarem a label em cima da caixa
+  const dropdownFixClass = "w-full [&>div]:flex [&>div]:flex-col [&>div]:items-start [&>div]:gap-1.5 [&_select]:w-full [&_label]:font-semibold [&_label]:text-[#3A250B]"
+
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
-      <header className="flex flex-row items-center justify-center gap-2 w-full max-w-full">
-        <img src="/images/icons/paw2.svg" alt="paw" width={24} height={24} />
-        <div className="flex items-center justify-center text-center ">
-          <span className="text-[#755835] font-poppins font-semibold ">Dados do animal</span>
+    <div className="w-full max-w-5xl mx-auto rounded-3xl border border-[#755835]/20 bg-white p-6 sm:p-8 shadow-[0_10px_30px_rgba(58,37,11,0.05)]">
+      {/* Cabeçalho */}
+      <header className="flex items-center gap-3 pb-6 mb-6 border-b border-[#755835]/15">
+        <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-[#755835]/10 text-[#755835] shrink-0">
+          <img src="/images/icons/paw2.svg" alt="Ícone Patinha" width={22} height={22} className="object-contain" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-[#3A250B] font-poppins tracking-tight">Cadastro do Animal</h2>
+          <p className="text-xs text-[#755835]/80 font-poppins">Preencha as informações do novo resgatado</p>
         </div>
       </header>
-      <form className="flex flex-col max-w-full gap-4 p-4 " onSubmit={handleSubmit(onSubmit)}>
+
+      <form className="flex flex-col gap-6" onSubmit={handleSubmit(onSubmit)}>
+        {/* Mensagens de Erro */}
         {validationMessages.length > 0 && (
           <div
             role="alert"
-            className="rounded-md border border-[#B85454]/40 bg-[#FFF0ED] px-4 py-3 text-sm text-[#8A3B3B]"
+            className="rounded-2xl border border-[#B85454]/30 bg-[#FFF0ED] p-4 text-sm text-[#8A3B3B] shadow-sm"
           >
-            <p className="font-poppins font-semibold">Corrija os erros abaixo:</p>
-            <ul className="mt-2 list-disc pl-5 font-poppins">
+            <div className="flex items-center gap-2 font-poppins font-semibold mb-1">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#B85454]" />
+              Corrija os erros destacados abaixo:
+            </div>
+            <ul className="list-disc pl-6 space-y-1 font-poppins text-xs sm:text-sm">
               {validationMessages.map((message) => (
                 <li key={message}>{message}</li>
               ))}
             </ul>
           </div>
         )}
-        <div className="flex md:flex-row flex-col gap-4 max-w-full md:justify-center md:items-center lg:justify-start">
-          <div className="flex flex-row gap-4 ">
-            <div className="flex flex-wrap flex-col gap-4">
-              <Field label="Data de Chegada" id="dataChegada" type="text" {...register('dataChegada')} />
+
+        {/* Layout Principal em Duas Colunas */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Lado Esquerdo: Formulário com Todos os Campos com Rótulo no Topo */}
+          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
+            
+            <Field label="Nome" id="nome" type="text" {...register('nome')} />
+            
+            <Field label="Data de Chegada" id="dataChegada" type="text" {...register('dataChegada')} />
+
+            <div className={dropdownFixClass}>
               <DropDown
                 label="Espécie"
                 options={[Especies[0].label, Especies[1].label]}
@@ -137,6 +162,11 @@ export const FormNewAnimal = () => {
                 id="especie"
                 {...register('especie')}
               />
+            </div>
+
+            <Field label="Raça" id="raça" type="text" {...register('raca')} />
+
+            <div className={dropdownFixClass}>
               <DropDown
                 label="Cor"
                 options={Cores.map((cor) => cor.label)}
@@ -144,11 +174,21 @@ export const FormNewAnimal = () => {
                 id="cor"
                 {...register('cor')}
               />
-              <Field label="Raça" id="raça" type="text" {...register('raca')} />
             </div>
-            <div className="flex flex-col gap-4  ">
-              <Field label="Nome" id="nome" type="text" {...register('nome')} />
-              <Field label="Data de Nascimento" id="dataNascimento" type="text" {...register('dataNascimento')} />
+
+            <div className={dropdownFixClass}>
+              <DropDown
+                label="Pelagem"
+                options={Pelagens.map((pelagem) => pelagem.label)}
+                value={Pelagens.map((pelagem) => pelagem.value)}
+                id="pelagem"
+                {...register('pelagem')}
+              />
+            </div>
+
+            <Field label="Data de Nascimento" id="dataNascimento" type="text" {...register('dataNascimento')} />
+
+            <div className="flex flex-col justify-end pt-1">
               <Controller
                 name="sexo"
                 control={control}
@@ -163,68 +203,80 @@ export const FormNewAnimal = () => {
                   />
                 )}
               />
-              <DropDown
-                label="Pelagem"
-                options={Pelagens.map((pelagem) => pelagem.label)}
-                value={Pelagens.map((pelagem) => pelagem.value)}
-                id="pelagem"
-                {...register('pelagem')}
+            </div>
+
+          </div>
+
+          {/* Lado Direito: Foto + Sorologia */}
+          <div className="lg:col-span-4 flex flex-col items-center justify-between gap-6 p-6 rounded-2xl bg-[#FDF8F3] border border-[#755835]/15 h-full">
+            <div className="w-full flex flex-col items-center">
+              <Controller
+                name="foto"
+                control={control}
+                render={({ field }) => (
+                  <AvatarUpload
+                    id="foto"
+                    label="Foto do Animal"
+                    value={field.value as string}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
             </div>
+
+            <div className="w-full pt-4 border-t border-[#755835]/15 flex flex-col gap-3">
+              <span className="text-sm font-semibold text-[#3A250B] font-poppins">
+                Testes de Sorologia:
+              </span>
+              <div className="flex flex-col gap-2.5 font-poppins text-sm text-[#755835]">
+                <label className="flex items-center gap-3 cursor-pointer select-none hover:opacity-80 transition-opacity">
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 rounded border-[#755835]/40 text-[#755835] focus:ring-[#755835] accent-[#755835] cursor-pointer"
+                    {...register('fiv')}
+                  />
+                  <span className="font-medium text-[#3A250B]">Positivo para FIV</span>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer select-none hover:opacity-80 transition-opacity">
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 rounded border-[#755835]/40 text-[#755835] focus:ring-[#755835] accent-[#755835] cursor-pointer"
+                    {...register('felv')}
+                  />
+                  <span className="font-medium text-[#3A250B]">Positivo para FeLV</span>
+                </label>
+              </div>
+              <p className="text-[11px] text-[#755835]/70 italic font-poppins mt-1">
+                * Deixe desmarcado se for negativo para os dois.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col items-center gap-4">
-            <Controller
-              name="foto"
-              control={control}
-              render={({ field }) => (
-                <AvatarUpload
-                  id="foto"
-                  label="Foto"
-                  value={field.value as string}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                />
-              )}
-            />
-            <Controller
-              name="fivFelv"
-              control={control}
-              render={({ field }) => (
-                <CheckBox
-                  id="fivFelv"
-                  title="FIV/FeLV"
-                  value={field.value ? 'sim' : 'nao'}
-                  onChange={(selected) => field.onChange(selected === 'sim')}
-                  onBlur={field.onBlur}
-                  options={[
-                    { label: 'Sim', value: 'sim' },
-                    { label: 'Não', value: 'nao' },
-                  ]}
-                />
-              )}
-            />
-          </div>
+
         </div>
-        <div className="flex w-full justify-center">
+
+        {/* Motivo de Saída */}
+        <div className="w-full pt-2">
           <TextArea
             label="Motivo de saída"
             id="motivoSaida"
-            placeholder="Informe o motivo, se o animal já saiu..."
+            placeholder="Informe o motivo caso o animal já tenha sido adotado ou saído do abrigo..."
             {...register('motivoSaida')}
           />
         </div>
-        <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
+
+        {/* Botão de Salvar */}
+        <div className="flex items-center justify-end pt-4 border-t border-[#755835]/15">
           {isLoading ? (
             <Button type="submit" disabled icon="/images/icons/save-button.svg">
               Salvando...
             </Button>
           ) : (
             <Button type="submit" green icon="/images/icons/save-button.svg">
-              Salvar
+              Salvar Animal
             </Button>
           )}
-
-          {/* <Button green>Limpar</Button> */}
         </div>
       </form>
     </div>

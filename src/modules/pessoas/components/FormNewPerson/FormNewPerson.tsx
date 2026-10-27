@@ -120,64 +120,78 @@ export const FormNewPerson = ({ role }: { role?: PersonRole }) => {
   const isLoading = createPessoaMutation.isPending || isSubmitting
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
-      <header className="flex flex-row items-center justify-center gap-2 w-full max-w-full">
-        <img src="/images/icons/paw2.svg" alt="paw" width={24} height={24} />
-        <div className="flex items-center justify-center text-center ">
-          <span className="text-[#755835] font-poppins font-semibold ">{headings[tipo ?? 'pessoa']}</span>
+    <div className="w-full max-w-2xl mx-auto rounded-3xl border border-[#755835]/20 bg-white p-6 sm:p-8 shadow-[0_10px_30px_rgba(58,37,11,0.05)] font-poppins">
+      
+      {/* Cabeçalho com Ícone e Título */}
+      <header className="flex flex-col items-center justify-center text-center gap-2 pb-6 mb-6 border-b border-[#755835]/15">
+        <div className="flex items-center justify-center gap-2.5">
+          <div className="flex items-center justify-center w-9 h-9 rounded-2xl bg-[#755835]/10 text-[#755835] shrink-0">
+            <img src="/images/icons/paw2.svg" alt="Patinha" width={20} height={20} className="object-contain" />
+          </div>
+          <h1 className="text-xl font-bold text-[#3A250B] tracking-tight">
+            {headings[tipo ?? 'pessoa']}
+          </h1>
         </div>
       </header>
-      <form className="flex flex-col max-w-full gap-4 p-4 " onSubmit={handleSubmit(onSubmit)}>
+
+      <form className="flex flex-col gap-5" onSubmit={handleSubmit(onSubmit)}>
+        
+        {/* Mensagens de Validação de Erro */}
         {validationMessages.length > 0 && (
           <div
             role="alert"
-            className="rounded-md border border-[#B85454]/40 bg-[#FFF0ED] px-4 py-3 text-sm text-[#8A3B3B]"
+            className="rounded-2xl border border-[#B85454]/30 bg-[#FFF0ED] p-4 text-xs text-[#8A3B3B]"
           >
-            <p className="font-poppins font-semibold">Corrija os erros abaixo:</p>
-            <ul className="mt-2 list-disc pl-5 font-poppins">
+            <p className="font-bold">Corrija os erros abaixo:</p>
+            <ul className="mt-1.5 list-disc pl-5 font-medium flex flex-col gap-0.5">
               {validationMessages.map((message) => (
                 <li key={message}>{message}</li>
               ))}
             </ul>
           </div>
         )}
+
+        {/* Seleção do Tipo de Pessoa (se não passado via prop) */}
         {role ? (
           <input type="hidden" {...register('tipo')} />
         ) : (
-          <DropDown
-            label="Tipo de pessoa"
-            options={['Selecione', ...personRoles.map((personRoleOption) => personRoleOption.label)]}
-            value={['', ...personRoles.map((personRoleOption) => personRoleOption.value)]}
-            id="tipo"
-            {...register('tipo')}
-          />
-        )}
-        <div className="flex md:flex-row flex-col gap-4 max-w-full md:justify-center md:items-center lg:justify-start">
-          <div className="flex flex-row gap-4 ">
-            <div className="flex flex-wrap flex-col gap-4">
-              <Field label="Nome" id="nome" type="text" {...register('nome')} />
-              <Field label="CPF" id="cpf" type="text" {...register('cpf')} />
-              <Field
-                label="Data de nascimento"
-                id="dataNascimento"
-                type="text"
-                placeholder="dd/mm/aaaa"
-                {...register('dataNascimento')}
-              />
-              <Field label="Telefone" id="telefone" type="tel" {...register('telefone')} />
-            </div>
-            <div className="flex flex-col gap-4  ">
-              <Field label="Rua" id="rua" type="text" {...register('rua')} />
-              <Field label="Número" id="numero" type="text" {...register('numero')} />
-              <Field label="Bairro" id="bairro" type="text" {...register('bairro')} />
-              <Field label="Cidade" id="cidade" type="text" {...register('cidade')} />
-            </div>
+          <div className="w-full pb-1">
+            <DropDown
+              label="Tipo de pessoa"
+              options={['Selecione', ...personRoles.map((personRoleOption) => personRoleOption.label)]}
+              value={['', ...personRoles.map((personRoleOption) => personRoleOption.value)]}
+              id="tipo"
+              {...register('tipo')}
+            />
           </div>
+        )}
+
+        {/* Grade de 2 Colunas para Informações Pessoais e Endereço */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Nome" id="nome" type="text" {...register('nome')} />
+          <Field label="Rua" id="rua" type="text" {...register('rua')} />
+
+          <Field label="CPF" id="cpf" type="text" {...register('cpf')} />
+          <Field label="Número" id="numero" type="text" {...register('numero')} />
+
+          <Field
+            label="Data de nascimento"
+            id="dataNascimento"
+            type="text"
+            placeholder="dd/mm/aaaa"
+            {...register('dataNascimento')}
+          />
+          <Field label="Bairro" id="bairro" type="text" {...register('bairro')} />
+
+          <Field label="Telefone" id="telefone" type="tel" {...register('telefone')} />
+          <Field label="Cidade" id="cidade" type="text" {...register('cidade')} />
         </div>
+
+        {/* Campos Específicos para Voluntários */}
         {tipo === 'voluntario' && (
-          <section className="flex flex-col gap-4 border-t border-[#3A250B]/20 pt-4">
-            <h2 className="font-poppins font-semibold text-[#755835]">Dados do voluntariado</h2>
-            <div className="flex flex-wrap gap-4">
+          <section className="flex flex-col gap-3 pt-4 border-t border-[#755835]/15">
+            <h2 className="text-sm font-bold text-[#3A250B]">Dados do voluntariado</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field
                 label="Data de inscrição"
                 id="dataInscricao"
@@ -195,19 +209,25 @@ export const FormNewPerson = ({ role }: { role?: PersonRole }) => {
             </div>
           </section>
         )}
+
+        {/* Campos Específicos para Adotantes */}
         {tipo === 'adotante' && (
-          <section className="flex flex-col gap-4 border-t border-[#3A250B]/20 pt-4">
-            <h2 className="font-poppins font-semibold text-[#755835]">Dados do adotante</h2>
-            <Field
-              label="Data de cadastro"
-              id="dataCadastro"
-              type="text"
-              placeholder="dd/mm/aaaa"
-              {...register('dataInicio')}
-            />
+          <section className="flex flex-col gap-3 pt-4 border-t border-[#755835]/15">
+            <h2 className="text-sm font-bold text-[#3A250B]">Dados do adotante</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field
+                label="Data de cadastro"
+                id="dataCadastro"
+                type="text"
+                placeholder="dd/mm/aaaa"
+                {...register('dataInicio')}
+              />
+            </div>
           </section>
         )}
-        <div className="flex flex-wrap md:flex-row md:gap-4 lg:gap-16 items-center justify-center max-w-full">
+
+        {/* Botão de Salvar Centralizado */}
+        <div className="flex justify-center items-center pt-4 border-t border-[#755835]/15 mt-2">
           {isLoading ? (
             <Button type="submit" disabled icon="/images/icons/save-button.svg">
               Salvando...
@@ -218,6 +238,7 @@ export const FormNewPerson = ({ role }: { role?: PersonRole }) => {
             </Button>
           )}
         </div>
+
       </form>
     </div>
   )

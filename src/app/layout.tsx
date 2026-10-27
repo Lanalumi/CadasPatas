@@ -13,7 +13,7 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: 'CadasPatas',
+  title: 'AbrigaPet',
   description: 'Plataforma para ONGs de resgate de animais',
 }
 
@@ -24,13 +24,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={poppins.variable}>
-      <body className="bg-[#FFF9F7]">
+      <body className="bg-[#FFF9F7] font-poppins min-h-screen text-[#3A250B]">
         <QueryProvider>
           <ToastProvider>
-            <header className="flex md:w-[20%]">
+            {/* Contêiner da Barra Lateral */}
+            <header className="w-full md:w-56 lg:w-60 shrink-0">
               <MenuNav />
             </header>
-            <main className="md:ml-[180px] mt-[20%] md:mt-0 ml-[5%] ">{children}</main>
+
+            {/* Conteúdo Principal Ajustado para não Cortar na Sidebar */}
+            <main className="min-h-screen transition-all pt-20 md:pt-0 md:ml-56 lg:ml-60 p-4 sm:p-6 lg:p-8">
+              {children}
+            </main>
           </ToastProvider>
         </QueryProvider>
       </body>
