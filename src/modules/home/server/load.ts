@@ -2,8 +2,8 @@ import { prisma } from '@/lib/db'
 import { cache } from 'react'
 import { nextDoseLabel } from '@/modules/animais/prescricao/schedule'
 import { personRole } from '@/modules/pessoas/personRole'
-import { deriveSituacao, situacaoAnimalLabel } from '@/schemas/animalSchema'
-import type { HomeAdocao, HomeComunidade, HomeGatil, HomeGato, HomeMedicamento } from '../types'
+import { deriveSituacao, normalizeMotivoSaida, situacaoAnimalLabel } from '@/schemas/animalSchema'
+import type { HomeAdocao, HomeAnimais, HomeComunidade, HomeGatil, HomeGato, HomeMedicamento } from '../types'
 
 const TIME_ZONE = 'America/Sao_Paulo'
 
@@ -209,8 +209,33 @@ async function section<T>(label: string, load: () => Promise<T>): Promise<Sectio
   }
 }
 
-export function loadAnimaisTotal() {
-  return section('animais', () => prisma.animal.count())
+export function loadAnimaisResumo() {
+  return section('animais', async (): Promise<HomeAnimais> => {
+    const animals = await prisma.animal.findMany({
+      orderBy: { nome: 'asc' },
+      select: {
+        id: true,
+        nome: true,
+        foto: true,
+        sexo: true,
+        especie: true,
+        motivoSaida: true,
+        _count: { select: { adocoes: true } },
+      },
+    })
+
+    return {
+      total: animals.length,
+      items: animals.map((animal) => ({
+        id: animal.id,
+        nome: animal.nome,
+        foto: animal.foto,
+        sexoLabel: animal.sexo ? 'Macho' : 'Fêmea',
+        especieLabel: labelOf(animal.especie),
+        situacaoLabel: situacaoAnimalLabel[deriveSituacao(animal.motivoSaida, animal._count.adocoes > 0)],
+      })),
+    }
+  })
 }
 
 export function loadComunidade() {
@@ -273,44 +298,54 @@ export function loadGatis() {
 export function loadAdocoesDoMes() {
   return section('adocoes', async (): Promise<HomeAdocao[]> => {
     const { start, end } = currentMonthRange()
-    const adocoes = await prisma.adocao.findMany({
-      where: { dataAdocao: { gte: start, lt: end } },
-      orderBy: { dataAdocao: 'desc' },
+    const animals = await prisma.animal.findMany({
+      where: {
+        motivoSaida: { not: null },
+        dataSaida: { gte: start, lt: end },
+      },
+      orderBy: { dataSaida: 'desc' },
       select: {
-        pessoaId: true,
-        animalId: true,
-        dataAdocao: true,
-        animal: {
+        id: true,
+        nome: true,
+        foto: true,
+        especie: true,
+        motivoSaida: true,
+        dataSaida: true,
+        adocoes: {
+          orderBy: { dataAdocao: 'desc' },
+          take: 1,
           select: {
-            nome: true,
-            foto: true,
-            especie: true,
-            motivoSaida: true,
-          },
-        },
-        pessoa: {
-          select: {
-            nome: true,
-            telefone: true,
-            cidade: true,
-            rua: true,
-            numero: true,
-            bairro: true,
+            pessoa: {
+              select: {
+                nome: true,
+                telefone: true,
+                cidade: true,
+                rua: true,
+                numero: true,
+                bairro: true,
+              },
+            },
           },
         },
       },
     })
 
-    return adocoes.map((adocao) => ({
-      id: `${adocao.pessoaId}:${adocao.animalId}`,
-      dataAdocao: formatDate(adocao.dataAdocao),
-      animal: {
-        nome: adocao.animal.nome,
-        foto: adocao.animal.foto,
-        especieLabel: labelOf(adocao.animal.especie),
-        situacaoLabel: situacaoAnimalLabel[deriveSituacao(adocao.animal.motivoSaida, true)],
-      },
-      adotante: adocao.pessoa,
-    }))
+    return animals.flatMap((animal) => {
+      if (normalizeMotivoSaida(animal.motivoSaida) !== 'adocao' || !animal.dataSaida) return []
+
+      return [
+        {
+          id: animal.id,
+          dataAdocao: formatDate(animal.dataSaida),
+          animal: {
+            nome: animal.nome,
+            foto: animal.foto,
+            especieLabel: labelOf(animal.especie),
+            situacaoLabel: situacaoAnimalLabel[deriveSituacao(animal.motivoSaida, true)],
+          },
+          adotante: animal.adocoes[0]?.pessoa ?? null,
+        },
+      ]
+    })
   })
 }

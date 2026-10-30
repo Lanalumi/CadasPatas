@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import type { Animal as PrismaAnimal } from '@/generated/prisma/client'
-import { animalPublicSchema, deriveSituacao, updateAnimalSchema } from '@/schemas/animalSchema'
+import { animalPublicSchema, deriveSituacao, saidaPairError, updateAnimalSchema } from '@/schemas/animalSchema'
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 
@@ -20,6 +20,7 @@ function toPublicAnimal(animal: PrismaAnimal, adotado: boolean) {
     foto: animal.foto,
     especie: animal.especie,
     motivoSaida: animal.motivoSaida,
+    dataSaida: animal.dataSaida,
     adotado,
     situacao: deriveSituacao(animal.motivoSaida, adotado),
   })
@@ -56,13 +57,27 @@ export const PATCH = async (request: Request, { params }: { params: Promise<{ id
   try {
     const body = await request.json()
     const data = updateAnimalSchema.partial().parse(body)
-    const { motivoSaida, foto, ...rest } = data
+    const { motivoSaida, dataSaida, foto, ...rest } = data
+
+    if (motivoSaida !== undefined || dataSaida !== undefined) {
+      if (motivoSaida === undefined || dataSaida === undefined) {
+        return NextResponse.json({ message: 'Informe o motivo e a data de saída juntos' }, { status: 400 })
+      }
+
+      const pairError = saidaPairError(motivoSaida, dataSaida)
+      if (pairError) {
+        return NextResponse.json({ message: pairError }, { status: 400 })
+      }
+    }
 
     const animal = await prisma.animal.update({
       data: {
         ...rest,
         ...(motivoSaida !== undefined && {
-          motivoSaida: motivoSaida?.trim() || null,
+          motivoSaida,
+        }),
+        ...(dataSaida !== undefined && {
+          dataSaida,
         }),
         ...(foto !== undefined && {
           foto: foto || null,

@@ -71,6 +71,7 @@ model Animal {
   dataNascimento DateTime?
   dataChegada    DateTime
   motivoSaida    String?
+  dataSaida      DateTime?
   foto           String?
 
   adocoes               Adocao[]

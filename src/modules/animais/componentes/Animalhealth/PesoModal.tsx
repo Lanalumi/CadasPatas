@@ -4,6 +4,7 @@ import { useListQuery } from '@/global/hooks/useListQuery'
 import { useMutation } from '@/global/hooks/useMutation'
 import { API_URL } from '@/global/constants/api'
 import { Card } from '@/global/ui/Card/Card'
+import { DateField } from '@/global/ui/DateField/DateField'
 import { Field } from '@/global/ui/Field/Field'
 import { api } from '@/lib/http/api'
 import { ApiError } from '@/lib/client/errors'
@@ -146,13 +147,7 @@ export function PesoModal({ animalId, enabled = true }: PesoModalProps) {
             placeholder="0,0"
             {...register('quantidadePeso')}
           />
-          <Field
-            label="Data"
-            id={`data-peso-${animalId}`}
-            type="text"
-            placeholder="dd/mm/aaaa"
-            {...register('dataPesagem')}
-          />
+          <DateField label="Data" id={`data-peso-${animalId}`} {...register('dataPesagem')} />
         </div>
         <button
           type="submit"

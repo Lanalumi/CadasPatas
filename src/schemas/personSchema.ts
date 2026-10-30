@@ -44,6 +44,7 @@ export const createPersonSchema = z.object({
   dataSaida: optionalDateSchema('Data inválida. Use dd/mm/aaaa'),
 })
 export const updatePersonSchema = createPersonSchema
+export const updatePersonFieldsSchema = createPersonSchema.omit({ tipo: true })
 export const personPublicSchema = personEntitySchema.extend({
   tipo: tipoPessoaSchema.pick({ nome: true }),
 })

@@ -50,7 +50,21 @@ export type HomeAdocao = {
     rua: string
     numero: number
     bairro: string
-  }
+  } | null
+}
+
+export type HomeAnimalResumo = {
+  id: string
+  nome: string
+  foto: string | null
+  sexoLabel: string
+  especieLabel: string
+  situacaoLabel: string
+}
+
+export type HomeAnimais = {
+  total: number
+  items: HomeAnimalResumo[]
 }
 
 export type HomeComunidade = {

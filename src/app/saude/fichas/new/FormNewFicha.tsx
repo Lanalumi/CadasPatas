@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/global/ui/Button/Button'
+import { DateField } from '@/global/ui/DateField/DateField'
 import { Field } from '@/global/ui/Field/Field'
 import { TextArea } from '@/global/ui/TextArea/TextArea'
 import { API_URL } from '@/global/constants/api'
@@ -172,8 +173,8 @@ export function FormNewFicha({
               </datalist>
             </div>
             <div className="flex flex-col gap-4">
-              <Field label="Data de atendimento" id="dataAtendimento" type="text" {...register('dataAtendimento')} />
-              <Field label="Data de retorno" id="dataRetorno" type="text" {...register('dataRetorno')} />
+              <DateField label="Data de atendimento" id="dataAtendimento" {...register('dataAtendimento')} />
+              <DateField label="Data de retorno" id="dataRetorno" {...register('dataRetorno')} />
             </div>
           </div>
           <div className="flex w-full justify-center">

@@ -8,7 +8,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, type KeyboardEvent, type ReactNode } from 'react'
-import { DashboardCard, EmptyCopy, Total } from './chrome'
+import { DashboardCard, EmptyCopy, Total } from './HomePage'
 
 const listClass = 'flex max-h-80 flex-col gap-3 overflow-y-auto pr-1'
 
@@ -131,6 +131,7 @@ export function MedicacaoPanel({ gatos }: { gatos: HomeGato[] }) {
     <DashboardCard
       title="Medicação pendente"
       description="Acompanhe os gatos com tratamento em andamento"
+      className="h-full"
     >
       <Total value={gatos.length} />
       {gatos.length === 0 ? (
@@ -172,7 +173,7 @@ export function GatisPanel({ gatis }: { gatis: HomeGatil[] }) {
   }
 
   return (
-    <DashboardCard title="Gatis" description="Locais cadastrados e os gatos que estão em cada um">
+    <DashboardCard title="Gatis" description="Locais cadastrados e os gatos que estão em cada um" className="h-full">
       {gatis.length === 0 ? (
         <EmptyCopy>Nenhum gatil cadastrado</EmptyCopy>
       ) : (
@@ -237,7 +238,7 @@ export function AdocoesPanel({ adocoes }: { adocoes: HomeAdocao[] }) {
   const [adocao, setAdocao] = useState<HomeAdocao | null>(null)
 
   return (
-    <DashboardCard title="Adoções do mês" description="Adoções registradas neste mês">
+    <DashboardCard title="Adoções do mês" description="Animais que saíram por adoção neste mês" className="h-full">
       {adocoes.length === 0 ? (
         <EmptyCopy>Nenhuma adoção neste mês</EmptyCopy>
       ) : (
@@ -248,7 +249,7 @@ export function AdocoesPanel({ adocoes }: { adocoes: HomeAdocao[] }) {
                 title={item.animal.nome}
                 image={{ src: item.animal.foto, alt: `Foto de ${item.animal.nome}` }}
                 infos={[
-                  { label: 'Adotante', value: item.adotante.nome },
+                  { label: 'Adotante', value: item.adotante?.nome },
                   { label: 'Data', value: item.dataAdocao },
                 ]}
                 role="button"
@@ -278,17 +279,19 @@ export function AdocoesPanel({ adocoes }: { adocoes: HomeAdocao[] }) {
                   <InfoLine label="Situação" value={adocao.animal.situacaoLabel} />
                 </dl>
               </div>
-              <section className="flex flex-col gap-1">
-                <h2 className="font-poppins text-base font-bold text-[#755835]">Adotante</h2>
-                <dl className="flex flex-col gap-1">
-                  <InfoLine label="Nome" value={adocao.adotante.nome} />
-                  <InfoLine label="Telefone" value={adocao.adotante.telefone} />
-                  <InfoLine label="Cidade" value={adocao.adotante.cidade} />
-                  <InfoLine label="Rua" value={adocao.adotante.rua} />
-                  <InfoLine label="Número" value={adocao.adotante.numero} />
-                  <InfoLine label="Bairro" value={adocao.adotante.bairro} />
-                </dl>
-              </section>
+              {adocao.adotante ? (
+                <section className="flex flex-col gap-1">
+                  <h2 className="font-poppins text-base font-bold text-[#755835]">Adotante</h2>
+                  <dl className="flex flex-col gap-1">
+                    <InfoLine label="Nome" value={adocao.adotante.nome} />
+                    <InfoLine label="Telefone" value={adocao.adotante.telefone} />
+                    <InfoLine label="Cidade" value={adocao.adotante.cidade} />
+                    <InfoLine label="Rua" value={adocao.adotante.rua} />
+                    <InfoLine label="Número" value={adocao.adotante.numero} />
+                    <InfoLine label="Bairro" value={adocao.adotante.bairro} />
+                  </dl>
+                </section>
+              ) : null}
               <dl>
                 <InfoLine label="Data da adoção" value={adocao.dataAdocao} />
               </dl>
@@ -304,16 +307,14 @@ export function CadastrosCard() {
   const router = useRouter()
 
   return (
-    <DashboardCard
-      title="Ações rápidas"
-      description="Atalhos para cadastros frequentes no abrigo"
-    >
-      <div className="flex flex-col items-start gap-4">
+    <DashboardCard title="Ações rápidas" description="Atalhos para cadastros frequentes no abrigo" className="h-full">
+      <div className="grid grid-cols-2 gap-4">
         {registers.map((item) => (
           <Button
             key={item.href}
             type="button"
             green
+            fill
             icon="/images/icons/add-button.svg"
             onClick={() => router.push(item.href)}
           >
