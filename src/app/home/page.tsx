@@ -1,50 +1,92 @@
-'use client'
-import { Button } from '@/global/ui/Button/Button'
-import { useRouter } from 'next/navigation'
+import { Suspense } from 'react'
+import {
+  loadAdocoesDoMes,
+  loadAnimaisTotal,
+  loadComunidade,
+  loadGatis,
+  loadMedicacao,
+} from '@/modules/home/server/load'
+import { DashboardCard, ErrorCard, LoadingCard, Total } from './chrome'
+import { AdocoesPanel, CadastrosCard, GatisPanel, MedicacaoPanel } from './interactive'
+
+async function AnimaisSection() {
+  const result = await loadAnimaisTotal()
+  if (!result.ok) return <ErrorCard title="Animais" />
+
+  return (
+    <DashboardCard title="Animais">
+      <Total value={result.data} />
+    </DashboardCard>
+  )
+}
+
+async function ComunidadeSection() {
+  const result = await loadComunidade()
+  if (!result.ok) return <ErrorCard title="Comunidade" />
+
+  const cards = [
+    { title: 'Voluntários', value: result.data.voluntarios },
+    { title: 'Clínicas', value: result.data.clinicas },
+    { title: 'Adotantes', value: result.data.adotantes },
+  ]
+
+  return (
+    <DashboardCard title="Comunidade" className="@container">
+      <div className="grid grid-cols-1 gap-3 @md:grid-cols-3">
+        {cards.map((card) => (
+          <DashboardCard key={card.title} className="text-center" title={<span className="text-sm">{card.title}</span>}>
+            <Total value={card.value} className="text-2xl" />
+          </DashboardCard>
+        ))}
+      </div>
+    </DashboardCard>
+  )
+}
+
+async function MedicacaoSection() {
+  const result = await loadMedicacao()
+  if (!result.ok) return <ErrorCard title="Medicação pendente" />
+  return <MedicacaoPanel gatos={result.data} />
+}
+
+async function GatisSection() {
+  const result = await loadGatis()
+  if (!result.ok) return <ErrorCard title="Gatis" />
+  return <GatisPanel gatis={result.data} />
+}
+
+async function AdocoesSection() {
+  const result = await loadAdocoesDoMes()
+  if (!result.ok) return <ErrorCard title="Adoções do mês" />
+  return <AdocoesPanel adocoes={result.data} />
+}
 
 export default function HomePage() {
-  const router = useRouter()
   return (
-    <>
-      <header>
-        <h1 className=" font-poppins text-[#755835] font-bold text-2xl">Dashboard</h1>
-      </header>
-      <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
-        <div className="flex flex-row gap-4">
-          <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
-            <h2 className=" font-poppins text-[#755835] font-bold text-xl">Animais</h2>
-            <p className=" font-poppins text-[#755835] font-semibold text-base">100</p>
-          </div>
-          <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
-            <h2 className=" font-poppins text-[#755835] font-bold text-xl">Novos Registros</h2>
-            <p className=" font-poppins text-[#755835] font-semibold text-base">5</p>
-          </div>
-          <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
-            <h2 className=" font-poppins text-[#755835] font-bold text-xl">Voluntários Ativos</h2>
-            <p className=" font-poppins text-[#755835] font-semibold text-base">6</p>
-          </div>
-          <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
-            <h2 className=" font-poppins text-[#755835] font-bold text-xl">Vacinas Pendentes</h2>
-            <p className=" font-poppins text-[#755835] font-semibold text-base">3</p>
-          </div>
-        </div>
-        <article className="flex flex-row gap-12 items-center justify-center">
-          <div className="flex flex-col gap-4 items-center justify-center">
-            <Button green onClick={() => router.push('/animais/new')} icon="/images/icons/add-button.svg">
-              Cadastrar Animal
-            </Button>
-            <Button disabled onClick={() => router.push('/voluntarios/new')} icon="/images/icons/add-button.svg">
-              Cadastrar Voluntário
-            </Button>
-          </div>
-          <div className="flex flex-col gap-4 rounded-xl border border-[#3A250B]/30 bg-white shadow-[2px_4px_14px_rgba(58,37,11,0.1)] p-4 items-center justify-center">
-            <h1 className=" font-poppins text-[#755835] font-bold text-xl">Acompanhamento dos Animais</h1>
-            <p className=" font-poppins text-[#755835] font-semibold text-base">
-              Acompanhe o status dos animais, vacinas, consultas e adocao
-            </p>
-          </div>
-        </article>
+    <div className="flex flex-col gap-4 px-4 py-6">
+      <h1 className="font-poppins text-2xl font-bold text-[#755835]">Dashboard</h1>
+
+      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[minmax(8rem,0.7fr)_minmax(18rem,1.5fr)_minmax(16rem,1.3fr)]">
+        <Suspense fallback={<LoadingCard title="Animais" />}>
+          <AnimaisSection />
+        </Suspense>
+        <Suspense fallback={<LoadingCard title="Comunidade" />}>
+          <ComunidadeSection />
+        </Suspense>
+        <Suspense fallback={<LoadingCard title="Medicação pendente" />}>
+          <MedicacaoSection />
+        </Suspense>
       </div>
-    </>
+
+      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
+        <Suspense fallback={<LoadingCard title="Gatis" />}>
+          <GatisSection />
+        </Suspense>
+        <Suspense fallback={<LoadingCard title="Adoções do mês" />}>
+          <AdocoesSection />
+        </Suspense>
+        <CadastrosCard />
+      </div>
+    </div>
   )
 }
