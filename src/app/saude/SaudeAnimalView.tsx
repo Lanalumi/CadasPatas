@@ -127,50 +127,57 @@ export default async function SaudeAnimalView() {
   }
 
   return (
-    <div className="fixed top-[10%] right-0 bottom-0 left-[5%] flex flex-col overflow-y-auto py-4 pr-4 pl-2 md:top-0 md:left-[20%] md:overflow-hidden md:pl-4 lg:left-[10%]">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-        <h1 className="font-poppins text-2xl font-bold text-[#755835]">Saúde animal</h1>
+    <div className="w-full max-w-7xl mx-auto flex flex-col gap-6 font-poppins pb-8">
+      
+      {/* Cabeçalho da Página */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#755835]/15">
+        <div>
+          <h1 className="text-2xl font-bold text-[#3A250B] tracking-tight">Saúde animal</h1>
+          <p className="text-xs text-[#755835]/80 mt-0.5">
+            Acompanhamento de fichas médicas e histórico de consultas dos animais
+          </p>
+        </div>
         <SaudeActions />
+      </header>
+
+      {/* Grade de 2 Colunas para Fichas e Consultas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <CommunityColumn
+          heading="Fichas Médicas"
+          searchId="search-fichas"
+          searchPlaceholder="Pesquisar fichas médicas"
+          sortOptions={[
+            { value: 'animal', label: 'Animal' },
+            { value: 'dataAtendimento', label: 'Última consulta' },
+            { value: 'clinica', label: 'Clínica' },
+          ]}
+          defaultSortBy="animal"
+          defaultSortDir="asc"
+          items={fichas}
+          emptyLabel="Nenhuma ficha médica encontrada"
+          filteredEmptyLabel="Tente ajustar os filtros"
+          errorLabel={errorLabel}
+        />
+
+        <CommunityColumn
+          heading="Consultas"
+          searchId="search-consultas"
+          searchPlaceholder="Pesquisar consultas"
+          sortOptions={[
+            { value: 'dataAtendimento', label: 'Data de atendimento' },
+            { value: 'animal', label: 'Animal' },
+            { value: 'clinica', label: 'Clínica' },
+            { value: 'motivo', label: 'Motivo' },
+          ]}
+          defaultSortBy="dataAtendimento"
+          defaultSortDir="desc"
+          items={historico}
+          emptyLabel="Nenhuma consulta encontrada"
+          filteredEmptyLabel="Tente ajustar os filtros"
+          errorLabel={errorLabel}
+        />
       </div>
-      <div className="mt-4 flex min-h-0 flex-1 flex-col gap-4 md:grid md:grid-rows-2">
-        <div className="h-[28rem] shrink-0 md:h-full md:min-h-0">
-          <CommunityColumn
-            heading="Fichas Médicas"
-            searchId="search-fichas"
-            searchPlaceholder="Pesquisar fichas médicas"
-            sortOptions={[
-              { value: 'animal', label: 'Animal' },
-              { value: 'dataAtendimento', label: 'Última consulta' },
-              { value: 'clinica', label: 'Clínica' },
-            ]}
-            defaultSortBy="animal"
-            defaultSortDir="asc"
-            items={fichas}
-            emptyLabel="Nenhuma ficha médica encontrada"
-            filteredEmptyLabel="Tente ajustar os filtros"
-            errorLabel={errorLabel}
-          />
-        </div>
-        <div className="h-[28rem] shrink-0 md:h-full md:min-h-0">
-          <CommunityColumn
-            heading="Consultas"
-            searchId="search-consultas"
-            searchPlaceholder="Pesquisar consultas"
-            sortOptions={[
-              { value: 'dataAtendimento', label: 'Data de atendimento' },
-              { value: 'animal', label: 'Animal' },
-              { value: 'clinica', label: 'Clínica' },
-              { value: 'motivo', label: 'Motivo' },
-            ]}
-            defaultSortBy="dataAtendimento"
-            defaultSortDir="desc"
-            items={historico}
-            emptyLabel="Nenhuma consulta encontrada"
-            filteredEmptyLabel="Tente ajustar os filtros"
-            errorLabel={errorLabel}
-          />
-        </div>
-      </div>
+
     </div>
   )
 }

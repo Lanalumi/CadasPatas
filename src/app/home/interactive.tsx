@@ -128,7 +128,10 @@ export function MedicacaoPanel({ gatos }: { gatos: HomeGato[] }) {
   const [gato, setGato] = useState<HomeGato | null>(null)
 
   return (
-    <DashboardCard title="Medicação pendente">
+    <DashboardCard
+      title="Medicação pendente"
+      description="Acompanhe os gatos com tratamento em andamento"
+    >
       <Total value={gatos.length} />
       {gatos.length === 0 ? (
         <EmptyCopy>Nenhum gato com medicação pendente</EmptyCopy>
@@ -169,7 +172,7 @@ export function GatisPanel({ gatis }: { gatis: HomeGatil[] }) {
   }
 
   return (
-    <DashboardCard title="Gatis">
+    <DashboardCard title="Gatis" description="Locais cadastrados e os gatos que estão em cada um">
       {gatis.length === 0 ? (
         <EmptyCopy>Nenhum gatil cadastrado</EmptyCopy>
       ) : (
@@ -234,7 +237,7 @@ export function AdocoesPanel({ adocoes }: { adocoes: HomeAdocao[] }) {
   const [adocao, setAdocao] = useState<HomeAdocao | null>(null)
 
   return (
-    <DashboardCard title="Adoções do mês">
+    <DashboardCard title="Adoções do mês" description="Adoções registradas neste mês">
       {adocoes.length === 0 ? (
         <EmptyCopy>Nenhuma adoção neste mês</EmptyCopy>
       ) : (
@@ -301,7 +304,10 @@ export function CadastrosCard() {
   const router = useRouter()
 
   return (
-    <DashboardCard title="Cadastros">
+    <DashboardCard
+      title="Ações rápidas"
+      description="Atalhos para cadastros frequentes no abrigo"
+    >
       <div className="flex flex-col items-start gap-4">
         {registers.map((item) => (
           <Button

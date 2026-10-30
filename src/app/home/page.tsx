@@ -6,40 +6,33 @@ import {
   loadGatis,
   loadMedicacao,
 } from '@/modules/home/server/load'
-import { DashboardCard, ErrorCard, LoadingCard, Total } from './chrome'
+import { ErrorCard, LoadingCard, MetricCard } from './chrome'
 import { AdocoesPanel, CadastrosCard, GatisPanel, MedicacaoPanel } from './interactive'
 
-async function AnimaisSection() {
+async function AnimaisMetric() {
   const result = await loadAnimaisTotal()
-  if (!result.ok) return <ErrorCard title="Animais" />
-
-  return (
-    <DashboardCard title="Animais">
-      <Total value={result.data} />
-    </DashboardCard>
-  )
+  if (!result.ok) return <MetricCard title="Animais" badge="Total" error />
+  return <MetricCard title="Animais" badge="Total" value={result.data} />
 }
 
-async function ComunidadeSection() {
+async function ComunidadeMetrics() {
   const result = await loadComunidade()
-  if (!result.ok) return <ErrorCard title="Comunidade" />
-
-  const cards = [
-    { title: 'Voluntários', value: result.data.voluntarios },
-    { title: 'Clínicas', value: result.data.clinicas },
-    { title: 'Adotantes', value: result.data.adotantes },
-  ]
+  if (!result.ok) {
+    return (
+      <>
+        <MetricCard title="Voluntários" badge="Ativos" error />
+        <MetricCard title="Clínicas" badge="Cadastradas" error />
+        <MetricCard title="Adotantes" badge="Cadastrados" error />
+      </>
+    )
+  }
 
   return (
-    <DashboardCard title="Comunidade" className="@container">
-      <div className="grid grid-cols-1 gap-3 @md:grid-cols-3">
-        {cards.map((card) => (
-          <DashboardCard key={card.title} className="text-center" title={<span className="text-sm">{card.title}</span>}>
-            <Total value={card.value} className="text-2xl" />
-          </DashboardCard>
-        ))}
-      </div>
-    </DashboardCard>
+    <>
+      <MetricCard title="Voluntários" badge="Ativos" value={result.data.voluntarios} />
+      <MetricCard title="Clínicas" badge="Cadastradas" value={result.data.clinicas} />
+      <MetricCard title="Adotantes" badge="Cadastrados" value={result.data.adotantes} />
+    </>
   )
 }
 
@@ -63,29 +56,54 @@ async function AdocoesSection() {
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col gap-4 px-4 py-6">
-      <h1 className="font-poppins text-2xl font-bold text-[#755835]">Dashboard</h1>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 font-poppins sm:py-8">
+      <header className="flex flex-col justify-between gap-4 border-b border-[#755835]/15 pb-6 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#755835]/10 text-[#755835]">
+            <img src="/images/icons/paw2.svg" alt="Patinha" width={26} height={26} className="object-contain" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#3A250B]">Dashboard</h1>
+            <p className="text-xs text-[#755835]/80">Visão geral e acompanhamento em tempo real do abrigo</p>
+          </div>
+        </div>
+      </header>
 
-      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[minmax(8rem,0.7fr)_minmax(18rem,1.5fr)_minmax(16rem,1.3fr)]">
-        <Suspense fallback={<LoadingCard title="Animais" />}>
-          <AnimaisSection />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+        <Suspense fallback={<MetricCard title="Animais" badge="Total" loading />}>
+          <AnimaisMetric />
         </Suspense>
-        <Suspense fallback={<LoadingCard title="Comunidade" />}>
-          <ComunidadeSection />
-        </Suspense>
-        <Suspense fallback={<LoadingCard title="Medicação pendente" />}>
-          <MedicacaoSection />
+        <Suspense
+          fallback={
+            <>
+              <MetricCard title="Voluntários" badge="Ativos" loading />
+              <MetricCard title="Clínicas" badge="Cadastradas" loading />
+              <MetricCard title="Adotantes" badge="Cadastrados" loading />
+            </>
+          }
+        >
+          <ComunidadeMetrics />
         </Suspense>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-5">
+          <CadastrosCard />
+        </div>
+        <div className="lg:col-span-7">
+          <Suspense fallback={<LoadingCard title="Medicação pendente" />}>
+            <MedicacaoSection />
+          </Suspense>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
         <Suspense fallback={<LoadingCard title="Gatis" />}>
           <GatisSection />
         </Suspense>
         <Suspense fallback={<LoadingCard title="Adoções do mês" />}>
           <AdocoesSection />
         </Suspense>
-        <CadastrosCard />
       </div>
     </div>
   )

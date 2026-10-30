@@ -1,18 +1,20 @@
 'use client'
 
-import { Button } from '@/global/ui/Button/Button'
-import { Card } from '@/global/ui/Card/Card'
-import { Field } from '@/global/ui/Field/Field'
 import Link from 'next/link'
-import { FormEvent, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+
+export type CommunityCardInfo = {
+  label: string
+  value: string
+}
 
 export type CommunityCardItem = {
   id: string
   nome: string
-  href?: string
   searchText: string
+  href?: string
+  infos: CommunityCardInfo[]
   sortValues: Record<string, string>
-  infos: { label: string; value: string }[]
 }
 
 type SortOption = {
@@ -20,27 +22,20 @@ type SortOption = {
   label: string
 }
 
+type SortDir = 'asc' | 'desc'
+
 type CommunityColumnProps = {
   heading: string
   searchId: string
   searchPlaceholder: string
   sortOptions: SortOption[]
   defaultSortBy: string
-  defaultSortDir: 'asc' | 'desc'
+  defaultSortDir?: SortDir
   items: CommunityCardItem[]
   emptyLabel: string
   filteredEmptyLabel: string
   errorLabel?: string
 }
-
-type ColumnFilters = {
-  search: string
-  sortBy: string
-  sortDir: 'asc' | 'desc'
-}
-
-const selectClassName =
-  'w-full rounded border border-[#3A250B]/30 bg-[#FFF9F7] p-2 font-poppins text-[12px] font-semibold text-[#755835]/70 outline-none'
 
 export function CommunityColumn({
   heading,
@@ -48,112 +43,137 @@ export function CommunityColumn({
   searchPlaceholder,
   sortOptions,
   defaultSortBy,
-  defaultSortDir,
+  defaultSortDir = 'asc',
   items,
   emptyLabel,
   filteredEmptyLabel,
   errorLabel,
 }: CommunityColumnProps) {
-  const [filters, setFilters] = useState<ColumnFilters>({
-    search: '',
-    sortBy: defaultSortBy,
-    sortDir: defaultSortDir,
-  })
+  const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState(defaultSortBy)
+  const [sortDir, setSortDir] = useState<SortDir>(defaultSortDir)
 
-  const visibleItems = useMemo(() => {
-    const query = filters.search.trim().toLocaleLowerCase('pt-BR')
-    const filtered = query ? items.filter((item) => item.searchText.toLocaleLowerCase('pt-BR').includes(query)) : items
-    const direction = filters.sortDir === 'asc' ? 1 : -1
+  const filteredItems = useMemo(() => {
+    const term = search.trim().toLowerCase()
+    let list = items
 
-    return [...filtered].sort((left, right) => {
-      const leftValue = left.sortValues[filters.sortBy] ?? ''
-      const rightValue = right.sortValues[filters.sortBy] ?? ''
-      return leftValue.localeCompare(rightValue, 'pt-BR', { numeric: true, sensitivity: 'base' }) * direction
+    if (term) {
+      list = list.filter((item) => item.searchText.toLowerCase().includes(term))
+    }
+
+    return [...list].sort((a, b) => {
+      const valA = (a.sortValues[sortBy] ?? '').toLowerCase()
+      const valB = (b.sortValues[sortBy] ?? '').toLowerCase()
+
+      if (valA < valB) return sortDir === 'asc' ? -1 : 1
+      if (valA > valB) return sortDir === 'asc' ? 1 : -1
+      return 0
     })
-  }, [filters, items])
-
-  const onFiltersSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const sortDir = String(data.get('sortDir') ?? defaultSortDir)
-
-    setFilters({
-      search: String(data.get('search') ?? ''),
-      sortBy: String(data.get('sortBy') ?? defaultSortBy),
-      sortDir: sortDir === 'asc' ? 'asc' : 'desc',
-    })
-  }
+  }, [items, search, sortBy, sortDir])
 
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-[#3A250B]/30 bg-white p-4 shadow-[2px_4px_14px_rgba(58,37,11,0.1)]">
-      <h2 className="shrink-0 truncate font-poppins text-lg font-bold text-[#755835]">{heading}</h2>
-      <form onSubmit={onFiltersSubmit} className="mt-3 flex shrink-0 flex-col gap-2">
-        <div className="w-full [&>div]:w-full [&>div]:max-w-none">
-          <Field name="search" placeholder={searchPlaceholder} id={searchId} type="text" />
+    <section className="flex flex-col gap-4 rounded-3xl border border-[#755835]/20 bg-white p-5 sm:p-6 shadow-[0_10px_30px_rgba(58,37,11,0.05)] w-full font-poppins">
+      
+      {/* Título do Card */}
+      <div className="pb-2 border-b border-[#755835]/15">
+        <h2 className="text-lg font-bold text-[#3A250B]">{heading}</h2>
+      </div>
+
+      {/* Formulário e Filtros Harmonizados */}
+      <div className="flex flex-col gap-3">
+        
+        {/* Campo de Busca (Com a mesma fonte, altura e esteticismo dos selects) */}
+        <div className="flex flex-col gap-1">
+          <label htmlFor={searchId} className="sr-only">
+            {searchPlaceholder}
+          </label>
+          <input
+            id={searchId}
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={searchPlaceholder}
+            className="w-full h-[42px] rounded-xl border border-[#755835]/30 bg-[#FDF8F3] px-3.5 py-2 text-xs font-semibold text-[#3A250B] placeholder:text-[#755835]/60 placeholder:font-medium focus:border-[#755835] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#755835] transition-all"
+          />
         </div>
+
+        {/* Campo de Ordenação por Parâmetro */}
         <select
-          name="sortBy"
-          defaultValue={defaultSortBy}
-          aria-label={`Ordenar ${heading}`}
-          className={selectClassName}
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="w-full h-[42px] rounded-xl border border-[#755835]/30 bg-[#FDF8F3] px-3.5 py-2 text-xs font-semibold text-[#3A250B] focus:border-[#755835] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#755835] transition-all cursor-pointer"
         >
-          {sortOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          {sortOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
             </option>
           ))}
         </select>
+
+        {/* Campo de Ordem (Ascendente/Descendente) */}
         <select
-          name="sortDir"
-          defaultValue={defaultSortDir}
-          aria-label={`Direção de ${heading}`}
-          className={selectClassName}
+          value={sortDir}
+          onChange={(e) => setSortDir(e.target.value as SortDir)}
+          className="w-full h-[42px] rounded-xl border border-[#755835]/30 bg-[#FDF8F3] px-3.5 py-2 text-xs font-semibold text-[#3A250B] focus:border-[#755835] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#755835] transition-all cursor-pointer"
         >
-          <option value="desc">Descendente</option>
           <option value="asc">Ascendente</option>
+          <option value="desc">Descendente</option>
         </select>
-        <Button
-          type="submit"
-          className="w-fit cursor-pointer rounded border bg-[#FFF9F7] px-3 font-poppins text-[12px] font-semibold text-[#755835]/70 outline-none"
-        >
-          Aplicar filtros
-        </Button>
-      </form>
-      <p className="mt-3 shrink-0 font-poppins text-sm font-semibold text-[#755835]/70">
-        {errorLabel ? 'Indisponível' : `Mostrando ${visibleItems.length} de ${items.length}`}
-      </p>
-      <div className="mt-3 min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-1">
-        {errorLabel ? (
-          <p className="font-poppins text-sm font-semibold text-[#755835]">{errorLabel}</p>
-        ) : visibleItems.length === 0 ? (
-          <p className="font-poppins text-sm font-semibold text-[#755835]/70">
-            {items.length === 0 ? emptyLabel : filteredEmptyLabel}
-          </p>
-        ) : (
-          <ul className="flex w-full flex-col gap-3 pb-2">
-            {visibleItems.map((item) => (
-              <li key={item.id}>
-                <Card
-                  className="relative transition-shadow hover:shadow-[2px_6px_16px_rgba(58,37,11,0.16)]"
-                  title={
-                    item.href ? (
-                      <Link
-                        href={item.href}
-                        className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8AA36C] after:absolute after:inset-0 after:content-['']"
-                      >
-                        {item.nome}
-                      </Link>
-                    ) : (
-                      item.nome
-                    )
-                  }
-                  infos={item.infos}
-                />
-              </li>
-            ))}
-          </ul>
+
+        {/* Botão de Limpar/Aplicar Filtros */}
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            className="w-fit self-start px-3 py-1.5 rounded-xl border border-[#755835]/30 bg-[#FDF8F3] hover:bg-[#755835]/10 text-[11px] font-bold text-[#3A250B] transition-all cursor-pointer"
+          >
+            Limpar busca
+          </button>
         )}
       </div>
+
+      {/* Contador de Resultados */}
+      <div className="pt-2 border-t border-[#755835]/10 text-[11px] font-semibold text-[#755835]">
+        Mostrando {filteredItems.length} de {items.length}
+      </div>
+
+      {/* Lista de Itens Cadastrados */}
+      <div className="flex flex-col gap-3 min-h-[180px]">
+        {errorLabel ? (
+          <div className="p-4 rounded-2xl bg-[#FFF0ED] border border-[#B85454]/20 text-xs font-medium text-[#8A3B3B]">
+            {errorLabel}
+          </div>
+        ) : filteredItems.length === 0 ? (
+          <div className="py-8 text-center text-xs font-semibold text-[#755835]/70 italic">
+            {search ? filteredEmptyLabel : emptyLabel}
+          </div>
+        ) : (
+          filteredItems.map((item) => {
+            const CardWrapper = item.href ? Link : 'div'
+            return (
+              <CardWrapper
+                key={item.id}
+                href={item.href ?? '#'}
+                className="group rounded-2xl border border-[#755835]/15 bg-[#FDF8F3] p-4 flex flex-col gap-2 hover:border-[#755835]/40 hover:bg-white transition-all shadow-xs"
+              >
+                <span className="text-sm font-bold text-[#3A250B] group-hover:text-[#5C7C3A] transition-colors">
+                  {item.nome}
+                </span>
+
+                <dl className="grid grid-cols-1 gap-1 pt-1 border-t border-[#755835]/10">
+                  {item.infos.map((info, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-[11px]">
+                      <dt className="font-semibold text-[#755835]/70">{info.label}:</dt>
+                      <dd className="font-bold text-[#3A250B]">{info.value || '-'}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </CardWrapper>
+            )
+          })
+        )}
+      </div>
+
     </section>
   )
 }

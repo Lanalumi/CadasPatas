@@ -129,12 +129,21 @@ export default async function ComunidadeView() {
   }
 
   return (
-    <div className="fixed top-[10%] right-0 bottom-0 left-[5%] flex flex-col overflow-hidden py-4 pr-4 pl-2 md:top-0 md:left-[20%] md:pl-4 lg:left-[10%]">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-        <h1 className="font-poppins text-2xl font-bold text-[#755835]">Comunidade</h1>
+    <div className="w-full max-w-7xl mx-auto flex flex-col gap-6 font-poppins pb-8">
+      
+      {/* Cabeçalho da Página */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#755835]/15">
+        <div>
+          <h1 className="text-2xl font-bold text-[#3A250B] tracking-tight">Comunidade</h1>
+          <p className="text-xs text-[#755835]/80 mt-0.5">
+            Gerencie voluntários, adotantes e clínicas parceiras da ONG
+          </p>
+        </div>
         <CommunityActions />
-      </div>
-      <div className="mt-4 grid min-h-0 flex-1 grid-cols-3 gap-4">
+      </header>
+
+      {/* Grade de Colunas de Comunidade */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
         <CommunityColumn
           heading="Voluntários"
           searchId="search-voluntarios"
@@ -151,6 +160,7 @@ export default async function ComunidadeView() {
           filteredEmptyLabel="Tente ajustar os filtros"
           errorLabel={errorLabel}
         />
+
         <CommunityColumn
           heading="Adotantes"
           searchId="search-adotantes"
@@ -167,6 +177,7 @@ export default async function ComunidadeView() {
           filteredEmptyLabel="Tente ajustar os filtros"
           errorLabel={errorLabel}
         />
+
         <CommunityColumn
           heading="Clínicas"
           searchId="search-clinicas"
@@ -183,6 +194,7 @@ export default async function ComunidadeView() {
           errorLabel={errorLabel}
         />
       </div>
+
     </div>
   )
 }
