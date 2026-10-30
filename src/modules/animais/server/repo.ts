@@ -1,6 +1,6 @@
 import { Prisma } from '@/generated/prisma/client'
 import { prisma } from '@/lib/db'
-import { listAnimalsQuerySchema } from '@/schemas/animalSchema'
+import { listAnimalsQuerySchema, motivoFromSearch } from '@/schemas/animalSchema'
 
 export const animalById = (id: string) => {
   const where: { id: string } = { id }
@@ -51,6 +51,11 @@ export async function animalFindMany(raw: unknown) {
       { motivoSaida: { contains: search, mode: 'insensitive' } },
     )
 
+    const motivo = motivoFromSearch(search)
+    if (motivo) {
+      searchConditions.push({ motivoSaida: { equals: motivo, mode: 'insensitive' } })
+    }
+
     const normalizedSearch = search.trim().toLowerCase()
     if (normalizedSearch === 'macho') {
       searchConditions.push({ sexo: true })
@@ -61,7 +66,11 @@ export async function animalFindMany(raw: unknown) {
     const parsedDate = tryParseSearchDate(search)
     if (parsedDate) {
       const { start, end } = dayRange(parsedDate)
-      searchConditions.push({ dataNascimento: { gte: start, lte: end } }, { dataChegada: { gte: start, lte: end } })
+      searchConditions.push(
+        { dataNascimento: { gte: start, lte: end } },
+        { dataChegada: { gte: start, lte: end } },
+        { dataSaida: { gte: start, lte: end } },
+      )
     }
   }
 

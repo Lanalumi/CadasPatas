@@ -1,5 +1,6 @@
 'use client'
 
+import { DateField } from '@/global/ui/DateField/DateField'
 import { Button, DropDown, Field } from '@/global/ui'
 import { ApiError } from '@/lib/client/errors'
 import { personHref, type PersonRole } from '@/modules/pessoas/personRole'
@@ -174,13 +175,7 @@ export const FormNewPerson = ({ role }: { role?: PersonRole }) => {
           <Field label="CPF" id="cpf" type="text" {...register('cpf')} />
           <Field label="Número" id="numero" type="text" {...register('numero')} />
 
-          <Field
-            label="Data de nascimento"
-            id="dataNascimento"
-            type="text"
-            placeholder="dd/mm/aaaa"
-            {...register('dataNascimento')}
-          />
+          <DateField label="Data de nascimento" id="dataNascimento" {...register('dataNascimento')} />
           <Field label="Bairro" id="bairro" type="text" {...register('bairro')} />
 
           <Field label="Telefone" id="telefone" type="tel" {...register('telefone')} />
@@ -192,20 +187,8 @@ export const FormNewPerson = ({ role }: { role?: PersonRole }) => {
           <section className="flex flex-col gap-3 pt-4 border-t border-[#755835]/15">
             <h2 className="text-sm font-bold text-[#3A250B]">Dados do voluntariado</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field
-                label="Data de inscrição"
-                id="dataInscricao"
-                type="text"
-                placeholder="dd/mm/aaaa"
-                {...register('dataInicio')}
-              />
-              <Field
-                label="Data de saída"
-                id="dataSaida"
-                type="text"
-                placeholder="dd/mm/aaaa"
-                {...register('dataSaida')}
-              />
+              <DateField label="Data de inscrição" id="dataInscricao" {...register('dataInicio')} />
+              <DateField label="Data de saída" id="dataSaida" {...register('dataSaida')} />
             </div>
           </section>
         )}
@@ -215,13 +198,7 @@ export const FormNewPerson = ({ role }: { role?: PersonRole }) => {
           <section className="flex flex-col gap-3 pt-4 border-t border-[#755835]/15">
             <h2 className="text-sm font-bold text-[#3A250B]">Dados do adotante</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field
-                label="Data de cadastro"
-                id="dataCadastro"
-                type="text"
-                placeholder="dd/mm/aaaa"
-                {...register('dataInicio')}
-              />
+              <DateField label="Data de cadastro" id="dataCadastro" {...register('dataInicio')} />
             </div>
           </section>
         )}

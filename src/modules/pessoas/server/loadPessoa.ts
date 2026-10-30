@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { formatBrDate } from '@/modules/pessoas/components/FormNewPerson/functions/parseDate'
 import { notFound, redirect } from 'next/navigation'
 import { personHref, personRole, type PersonRole } from '../personRole'
 
@@ -13,6 +14,49 @@ export async function loadPessoaById(id: string) {
       },
     },
   })
+}
+
+export type EditablePerson = {
+  id: string
+  role: PersonRole
+  nome: string
+  cpf: string
+  telefone: string
+  dataNascimento: string
+  rua: string
+  numero: number
+  bairro: string
+  cidade: string
+  dataInicio: string
+  dataSaida: string
+  adocoes: { animalId: string; nome: string; dataAdocao: string }[]
+}
+
+export function toEditablePerson(pessoa: NonNullable<Awaited<ReturnType<typeof loadPessoaById>>>): EditablePerson {
+  const role = personRole(pessoa.tipo.tipo)
+  if (!role) {
+    throw new Error('Papel de pessoa inválido')
+  }
+
+  return {
+    id: pessoa.id,
+    role,
+    nome: pessoa.nome,
+    cpf: pessoa.cpf,
+    telefone: pessoa.telefone,
+    dataNascimento: formatBrDate(pessoa.dataNascimento),
+    rua: pessoa.rua,
+    numero: pessoa.numero,
+    bairro: pessoa.bairro,
+    cidade: pessoa.cidade,
+    dataInicio: formatBrDate(pessoa.dataInicio),
+    dataSaida: formatBrDate(pessoa.dataSaida),
+    adocoes: pessoa.adocoes.map((adocao) => ({
+      animalId: adocao.animal.id,
+      nome: adocao.animal.nome,
+      dataAdocao: formatBrDate(adocao.dataAdocao),
+    })),
+  }
 }
 
 export async function requirePersonRole(id: string, expected: PersonRole) {
